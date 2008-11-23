@@ -1,0 +1,11 @@
+bin/ed_test
+Changes
+MANIFEST
+Makefile.PL
+README
+lib/SExpr-Edit.pm
+lib/Pane.pm
+t/00-load.t
+t/01-SExpr-Edit.t
+t/pod-coverage.t
+t/pod.t

@@ -1,0 +1,517 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+use Carp qw(croak);
+use Readonly;
+
+use FindBin qw($Bin);
+use lib qq{$Bin/../lib};
+use Curses;
+use POE;
+use POE::Wheel::Curses;
+
+use Pane;
+
+#
+# Available modes:
+#
+# Normal
+# Visual
+# Insert
+# Command-line
+#
+my %editor_key;
+my %inline_state;
+
+POE::Session->create
+  (
+  args          => [ $ARGV[0] ],
+  inline_states => { %inline_state },
+  );
+POE::Kernel->run();
+exit 0;
+
+# {{{ FETCH_CODE_ATTRIBUTES()
+sub FETCH_CODE_ATTRIBUTES
+  {
+  my ( $package, $code, $attributes ) = @_;
+use YAML; die "FETCH_CODE_ATTRIBUTES: ". Dump(\@_);
+  }
+
+# }}}
+
+# XXX FIX THIS GOTO ISSUE
+# {{{ _get_key_list({ string => q{KEY_BEGIN,'\cA','\e','c'..'z',' '} })
+sub _get_key_list
+  {
+  my ( $args ) = @_;
+  my $string = $args->{string};
+  my %keys = ();
+
+AGAIN:
+  for ( $string )
+    {
+    s{ ^ \s* \[ (.+?) \] \s* [,]? }{}mx and do
+      {
+      for my $ch ( split //, $1 ) { $keys{$ch} = 1 }
+goto AGAIN;
+      };
+    s{ ^ \s* '(.)' .. '(.)' \s* [,]? }{}mx and do
+      {
+      my ( $start, $end ) = ( $1, $2 );
+      for my $ch ( $start .. $end ) { $keys{$ch} = 1 }
+goto AGAIN;
+      };
+    s{ ^ \s* '\\e' \s* [,]? }{}mx and do
+      {
+      $keys{qq{\e}} = 1;
+goto AGAIN;
+      };
+    s{ ^ \s* '\\c(.)' \s* [,]? }{}mx and do
+      {
+      $keys{chr(ord("\cA") + ( ord(uc($1)) - ord('A') ) )} = 1;
+goto AGAIN;
+      };
+    s{ ^ \s* ([A-Z_]+) \s* [,]? }{}mx and do
+      {
+      $keys{$1} = 1;
+goto AGAIN;
+      };
+    s{ ^ \s* '(.)' \s* [,]? }{}mx and do
+      {
+      $keys{$1} = 1;
+goto AGAIN;
+      };
+    }
+
+  return keys %keys;
+  }
+
+# }}}
+
+# {{{ MODIFY_CODE_ATTRIBUTES()
+sub MODIFY_CODE_ATTRIBUTES
+  {
+  my ( $package, $code, $attributes ) = @_;
+
+# {{{ Keystroke(...) attribute
+  if ( my ( $Keystrokes ) = $attributes =~ m{ ^ Keystroke \s* \( (.+) \) $ }mx )
+    {
+    my @keys = _get_key_list({ string => $Keystrokes });
+    foreach my $key ( @keys )
+      {
+      $editor_key{default}{$key} = $code;
+      }
+    }
+
+# }}}
+
+# {{{ NormalKey(...) attribute
+  if ( my ( $Keystrokes ) = $attributes =~ m{ ^ NormalKey \s* \( (.+) \) $ }mx )
+    {
+    my @keys = _get_key_list({ string => $Keystrokes });
+    foreach my $key ( @keys )
+      {
+      $editor_key{normal}{$key} = $code;
+      }
+    }
+
+# }}}
+
+# {{{ InsertKey(...) attribute
+  if ( my ( $Keystrokes ) = $attributes =~ m{ ^ InsertKey \s* \( (.+) \) $ }mx )
+    {
+    my @keys = _get_key_list({ string => $Keystrokes });
+    foreach my $key ( @keys )
+      {
+      $editor_key{insert}{$key} = $code;
+      }
+    }
+
+# }}}
+
+# {{{ State(...) attribute
+  if ( my ( $State ) = $attributes =~ m{ ^ State \s* \( (.+) \) $ }mx )
+    {
+    $State =~ s{ ^ '   |   ' $ }{}gx;
+    $State =~ s{ ^ "   |   " $ }{}gx;
+    $State =~ s{ ^ \s+ | \s+ $ }{}gx;
+    $inline_state{$State} = sub
+      {
+      $code->
+        ({
+        kernel => $_[KERNEL],
+        heap   => $_[HEAP],
+        args   => [ @_[ ARG0 .. $#_ ] ],
+        });
+      };
+    }
+
+# }}}
+
+  return;
+  }
+
+# }}}
+
+# {{{ get_lines({ filename => $filename })
+sub get_lines
+  {
+  my ( $args ) = @_;
+  my $filename = $args->{filename};
+  my $lines    = [];
+
+  croak "Could not find file '$filename'." unless -e $filename;
+  croak "'$filename' is not a file." unless -f $filename;
+  
+  open my $fh, $filename or die "Could not open '$filename'";
+  @$lines = map { chomp; $_ } <$fh>;
+  close $fh;
+  return $lines;
+  }
+
+# }}}
+
+# {{{ Keystroke commands
+
+# {{{ _refresh
+sub _refresh : Keystroke('\cL')
+  {
+  my ( $args ) = @_;
+  my $kernel   = $args->{kernel};
+
+  $kernel->yield('update');
+  }
+
+# }}}
+
+# {{{ _quit
+sub _quit : Keystroke('q','\cC')
+  {
+  my ( $args ) = @_;
+  my $kernel   = $args->{kernel};
+
+  $kernel->yield('quit');
+  }
+
+# }}}
+
+# {{{ _insert_X
+sub _insert_X : InsertKey('a'..'z','A'..'Z','0'..'9',' ',[`~!@#$%^&*()-_=+{|};:'",<.>\/?],'[',']')
+  {
+  my ( $args, $keystroke ) = @_;
+  my $heap                 = $args->{heap};
+  my $pane                 = $heap->{pane};
+
+  $pane->insert($keystroke);
+  $pane->cursor_right;
+  $pane->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _x
+sub _x : NormalKey('x')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+  my $pane     = $heap->{pane};
+
+  $pane->delete;
+  $pane->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _KEY_END
+sub _KEY_END : Keystroke(KEY_END,'G')
+  {
+  my ( $args ) = @_;
+  my $heap = $args->{heap};
+
+  $heap->{pane}->cursor_flush_bottom();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _KEY_DOWN
+sub _KEY_DOWN : Keystroke(KEY_DOWN,'j')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->cursor_down();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _KEY_UP
+sub _KEY_UP : Keystroke(KEY_UP,'k')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->cursor_up();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _KEY_HOME
+sub _KEY_HOME : Keystroke(KEY_HOME)
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->cursor_flush_top();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _KEY_EOL
+sub _KEY_EOL : Keystroke(KEY_EOL,'$')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->cursor_flush_right();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _KEY_RIGHT
+sub _KEY_RIGHT : Keystroke(KEY_RIGHT,'l',' ')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->cursor_right();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _KEY_LEFT
+sub _KEY_LEFT : Keystroke(KEY_LEFT,'h')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->cursor_left();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _KEY_BEG
+sub _KEY_BEG : Keystroke(KEY_BEG,'^')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->cursor_flush_left();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  noutrefresh();
+  doupdate;
+  }
+
+# }}}
+
+# {{{ _i
+sub _i : NormalKey('i')
+  {
+  my ( $args )  = @_;
+  my $heap      = $args->{heap};
+  $heap->{mode} = 'insert';
+
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _a
+sub _a : NormalKey('a')
+  {
+  my ( $args )  = @_;
+  my $heap      = $args->{heap};
+  $heap->{mode} = 'insert';
+
+  $heap->{pane}->cursor_right;
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _esc
+sub _esc : InsertKey('\e')
+  {
+  my ( $args )  = @_;
+  my $heap      = $args->{heap};
+  $heap->{mode} = 'normal';
+
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _J
+sub _J : Keystroke('J')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->viewport_down();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _K
+sub _K : Keystroke('K')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->viewport_up();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _L
+sub _L : Keystroke('L')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->viewport_right();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ _H
+sub _H : Keystroke('H')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->viewport_left();
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# }}}
+
+# {{{ Event handlers
+
+# {{{ console_initialize
+#
+# Initialize the console interface.
+#
+sub console_initialize : State('_start')
+  {
+  my ( $args ) = @_;
+  my $kernel   = $args->{kernel};
+  my $heap     = $args->{heap};
+  my $filename = $args->{args}[0];
+
+  $heap->{curses} = POE::Wheel::Curses->new( InputEvent => q{got_input} );
+  $heap->{mode}   = q{normal};
+
+# {{{ Collect the longest string
+  my $file       = get_lines({ filename => $filename });
+  my $pane_width = length($file->[0]);
+  for my $line_len ( map { length($_) } @$file )
+    {
+    $pane_width = $line_len if $line_len > $pane_width;
+    }
+
+# }}}
+
+# {{{ Create scrolling pane
+  $heap->{pane} = Pane->new
+    ({
+    pane_height     => scalar(@$file),
+    viewport_height => $Curses::LINES - 1,
+    pane_width      => $pane_width,
+    viewport_width  => $Curses::COLS - (5 + 2),
+    content         => $file,
+    });
+
+# }}}
+
+  $kernel->yield('update');
+  }
+
+# }}}
+
+# {{{ curses_refresh
+#
+# Refresh the entire screen
+#
+sub curses_refresh : State('update')
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+
+  $heap->{pane}->update({ mode => $heap->{mode} });
+  }
+
+# }}}
+
+# {{{ console_quit
+#
+# Print the closing text
+# Destroy the heap items we allocated
+#
+sub console_quit : State('quit')
+  {
+  my ( $args ) = @_;
+  my $kernel   = $args->{kernel};
+  my $heap     = $args->{heap};
+  my $row      = $Curses::LINES - 2;
+
+  move( $row++, 0 ); clrtoeol(); addstr("Player has quit. Bye!");
+  move( $row++, 0 ); clrtoeol();
+  noutrefresh();
+  doupdate;
+
+  $kernel->alias_remove('console');
+  $kernel->alarm_remove_all();
+  delete $heap->{curses};
+  }
+
+# }}}
+
+# {{{ curses_input
+#
+# Perform editor actions for keystrokes
+#
+sub curses_input : State('got_input')
+  {
+  my ( $args )  = @_;
+  my $keystroke = $args->{args}[0];
+  my $mode      = $args->{heap}{mode};
+
+  $keystroke = uc( keyname($keystroke) ) if $keystroke =~ /^\d{2,}$/;
+  if ( $editor_key{$mode}{$keystroke} )
+    {
+    $editor_key{$mode}{$keystroke}->($args,$keystroke);
+    }
+  elsif ( $editor_key{default}{$keystroke} )
+    {
+    $editor_key{default}{$keystroke}->($args,$keystroke);
+    }
+  }
+
+# }}}
+
+# }}}
+
