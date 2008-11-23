@@ -443,6 +443,16 @@ sub insert
 
 # }}}
 
+# {{{ insert_line
+sub insert_line
+  {
+  my ( $self ) = @_;
+
+  splice @{$self->{content}}, $self->{top}+$self->{cursor_v}+1, 0, '';
+  }
+
+# }}}
+
 # {{{ delete
 sub delete
   {
@@ -454,6 +464,16 @@ sub delete
     $self->{left}+$self->{cursor_h},
     1
     ) = '';
+  }
+
+# }}}
+
+# {{{ delete_line
+sub delete_line
+  {
+  my ( $self ) = @_;
+
+  splice @{$self->{content}}, $self->{top}+$self->{cursor_v}+1, 1;
   }
 
 # }}}
