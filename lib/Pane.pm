@@ -16,14 +16,13 @@ Version 0.01
 
 our $VERSION = '0.01';
 
-
 =head1 SYNOPSIS
 
 Handles the basic mechanics of scrolling a viewport in 2-D around a pane of text
 
     use Pane;
 
-    my $foo = Pane->new
+    my $pane = Pane->new
         ({
         pane_height     => scalar(@{$heap->{file}}),
         viewport_height => $Curses::LINES - $row_starts{list},
@@ -32,11 +31,11 @@ Handles the basic mechanics of scrolling a viewport in 2-D around a pane of text
         content         => [],
         });
 
-    $foo->viewport_left;
+    $pane->viewport_left;
 
 =head1 FUNCTIONS
 
-# {{{ _default({ args => $args })
+# {{{ _default({ self => $args })
 
 =head2 _default
 
@@ -46,13 +45,13 @@ Internal method, specifies defaults for missing arguments.
 
 sub _default
   {
-  my ( $arglist ) = @_;
-  my $args = $arglist->{args};
+  my ( $args ) = @_;
+  my $self     = $args->{self};
 
-  $args->{viewport_width}  = 80  unless defined $args->{viewport_width};
-  $args->{pane_width}      = 132 unless defined $args->{pane_width};
-  $args->{viewport_height} = 52  unless defined $args->{viewport_height};
-  $args->{pane_height}     = 24  unless defined $args->{pane_height};
+  $self->{viewport_width}  = 80  unless defined $self->{viewport_width};
+  $self->{pane_width}      = 132 unless defined $self->{pane_width};
+  $self->{viewport_height} = 52  unless defined $self->{viewport_height};
+  $self->{pane_height}     = 24  unless defined $self->{pane_height};
   }
 
 # }}}
@@ -73,7 +72,7 @@ sub new
   my $class = ref $proto ? ref($proto) : $proto;
   my %args = %$args;
 
-  _default({ args => \%args });
+  _default({ self => \%args });
 
 # {{{ $self
   my $self =
@@ -83,9 +82,6 @@ sub new
     viewport_width  => $args{viewport_width},
     pane_width      => $args{pane_width},
 
-    excess_width  => $args{pane_width}  - $args{viewport_width},
-    excess_height => $args{pane_height} - $args{viewport_height},
-
     top  => 0,
     left => 0,
 
@@ -93,15 +89,70 @@ sub new
     cursor_h => 0,
 
     content => $args{content},
+    mode    => q{normal},
+
+    num => 5,
+    undo_stack => [],
     };
 
 # }}}
 
   return bless $self, $class;
   }
- 
 
 # }}}
+
+# {{{ _excess_width
+sub _excess_width
+  {
+  my ( $self ) = @_;
+  $self->{pane_width} - $self->{viewport_width}
+  }
+
+# }}}
+
+# {{{ _excess_height
+sub _excess_height
+  {
+  my ( $self ) = @_;
+  $self->{pane_height} - $self->{viewport_height}
+  }
+
+# }}}
+
+# XXX THIS MUST CHANGE...
+# {{{ _deep_copy_content
+sub _deep_copy_content
+  {
+  my ( $self ) = @_;
+  my $content = [];
+
+  for my $line ( @{$self->{content}} )
+    {
+    push @$content, $line;
+    }
+  return $content;
+  }
+
+# }}}
+
+# {{{ set_mode({ mode => $mode })
+sub set_mode
+  {
+  my ( $self, $args ) = @_;
+  my $mode            = $args->{mode};
+
+  if ( $mode eq 'insert' )
+    {
+    push @{$self->{undo_stack}}, $self->_deep_copy_content;
+    }
+  $self->{mode} = $mode;
+  }
+
+# }}}
+
+sub _global_v { my ( $self ) = @_; $self->{top} + $self->{cursor_v} }
+sub _global_h { my ( $self ) = @_; $self->{left} + $self->{cursor_h} }
 
 # {{{ viewport movement
 
@@ -119,8 +170,8 @@ sub viewport_down
   my ( $self ) = @_;
 
   $self->{top}++;
-  $self->{top} = $self->{excess_height} if
-    $self->{top} > $self->{excess_height};
+  $self->{top} = $self->_excess_height if
+    $self->{top} > $self->_excess_height;
   }
 
 # }}}
@@ -138,7 +189,7 @@ sub viewport_flush_bottom
   {
   my ( $self ) = @_;
 
-  $self->{top} = $self->{excess_height};
+  $self->{top} = $self->_excess_height;
   }
 
 # }}}
@@ -233,8 +284,8 @@ sub viewport_right
   my ( $self ) = @_;
 
   $self->{left}++;
-  $self->{left} = $self->{excess_width} if
-    $self->{left} > $self->{excess_width};
+  $self->{left} = $self->_excess_width if
+    $self->{left} > $self->_excess_width;
   }
 
 # }}}
@@ -252,7 +303,7 @@ sub viewport_flush_right
   {
   my ( $self ) = @_;
 
-  $self->{left} = $self->{excess_width};
+  $self->{left} = $self->_excess_width;
   }
 
 # }}}
@@ -357,7 +408,7 @@ sub cursor_flush_right
   {
   my ( $self ) = @_;
 
-  $self->{cursor_h} = $self->{viewport_width} - 1;
+  $self->{cursor_h} = $self->{viewport_width} - $self->{num} - 1;
   $self->viewport_flush_right();
   }
 
@@ -376,9 +427,9 @@ sub cursor_right
   my ( $self ) = @_;
 
   $self->{cursor_h}++;
-  if ( $self->{cursor_h} >= $self->{viewport_width} )
+  if ( $self->{cursor_h} >= $self->{viewport_width} - $self->{num} )
     {
-    $self->{cursor_h} = $self->{viewport_width} - 1;
+    $self->{cursor_h} = $self->{viewport_width} - $self->{num} - 1;
     $self->viewport_right();
     }
   }
@@ -428,15 +479,16 @@ sub cursor_flush_left
 
 # }}}
 
-# {{{ insert($ch)
+# {{{ insert({ keystroke => $ch })
 sub insert
   {
-  my ( $self, $ch ) = @_;
+  my ( $self, $args ) = @_;
+  my $ch              = $args->{keystroke};
 
   substr
     (
-    $self->{content}->[$self->{top}+$self->{cursor_v}],
-    $self->{left}+$self->{cursor_h},
+    $self->{content}->[ $self->_global_v ],
+    $self->_global_h,
     0
     ) = $ch;
   }
@@ -448,7 +500,7 @@ sub insert_line
   {
   my ( $self ) = @_;
 
-  splice @{$self->{content}}, $self->{top}+$self->{cursor_v}+1, 0, '';
+  splice @{$self->{content}}, $self->_global_v + 1, 0, '';
   }
 
 # }}}
@@ -460,8 +512,8 @@ sub delete
 
   substr
     (
-    $self->{content}->[$self->{top}+$self->{cursor_v}],
-    $self->{left}+$self->{cursor_h},
+    $self->{content}->[ $self->_global_v ],
+    $self->_global_h,
     1
     ) = '';
   }
@@ -473,105 +525,84 @@ sub delete_line
   {
   my ( $self ) = @_;
 
-  splice @{$self->{content}}, $self->{top}+$self->{cursor_v}+1, 1;
+  splice @{$self->{content}}, $self->_global_v + 1, 1;
   }
 
 # }}}
 
-# {{{ update({ mode => $mode })
+# {{{ update
 #
 # Update the code display area.  This sort of handles the highlight bar and
 # scrolling, although it's really kind of cheezy.
 #
 sub update
   {
-  my ( $self, $args )   = @_;
-  my $mode       = $args->{mode};
+  my ( $self )   = @_;
   my $file_lines = $self->{content};
-  my $cur_row    = 0;
-  my $cur_line   = $self->{top};
+  my $width      = $self->{viewport_width} - $self->{num};
 
 # {{{ Display visible rows
-  while ( $cur_row < $self->{viewport_height} )
+  for my $cur_row ( 0 .. $self->{viewport_height} - 1 )
     {
+    my $cur_offset = $cur_row + $self->{top};
     my $remainder = '';
-    if ( length($file_lines->[$cur_line]) > $self->{left} )
+    if ( length($file_lines->[$cur_offset]) > $self->{left} )
       {
       $remainder =
         substr
           (
-          $file_lines->[$cur_line],
+          $file_lines->[$cur_offset],
           $self->{left},
-          $self->{viewport_width}
+          $self->{viewport_width} - $self->{num}
           );
-      $remainder .= ' ' x ($self->{viewport_width} - length($remainder) ) if
-        length($remainder) < $self->{viewport_width};
+      $remainder .=
+        ' ' x ( $width - length($remainder) ) if length($remainder) < $width;
       }
 
-    my $highlighted = $cur_line == $self->{cursor_v} + $self->{top};
     move( $cur_row, 0 );
     clrtoeol();
 
-    addstr( sprintf( "%5d: ", $cur_line ) );
-
-# {{{ Display row
-    if ( 0 )
-      {
-# {{{ Highlight the row appropriately
-      if ( $highlighted )
-        {
-        attrset(A_REVERSE);
-        addstr( $remainder );
-        attrset(A_NORMAL);
-        }
-      else
-        {
-        addstr( substr( $remainder, 0, $self->{cursor_h} ) );
-        attrset(A_REVERSE);
-        addstr( substr( $remainder, $self->{cursor_h}, 1 ) );
-        attrset(A_NORMAL);
-        addstr( substr( $remainder, $self->{cursor_h} + 1 ) );
-        }
-
-# }}}
-      }
-    else
-      {
-      addstr( $remainder );
-      }
-
-# }}}
-
-    $cur_row++;
-    $cur_line++;
+    addstr
+      (
+      sprintf( "%$self->{num}d: %s", $cur_offset + 1, $remainder )
+      );
     }
 
 # }}}
 
-  $self->_update_modeline({ mode => $mode });
+  $self->_update_modeline;
   $self->_update_cursor;
   }
 
 # }}}
 
-# {{{ _update_modeline({ mode => $mode })
+# {{{ undo
+sub undo
+  {
+  my ( $self ) = @_;
+
+  $self->{content} = pop @{$self->{undo_stack}};
+  }
+
+# }}}
+
+# {{{ _update_modeline
 #
 # Update the modeline
 #
 sub _update_modeline
   {
-  my ( $self, $args ) = @_;
-  my $mode            = $args->{mode};
+  my ( $self ) = @_;
 
   attrset(A_REVERSE);
-  addstr( $self->{viewport_height}, 0, uc($mode) );
+  addstr( $self->{viewport_height}, 0, uc($self->{mode}) );
   attrset(A_NORMAL);
-  addstr( $self->{cursor_v}, 5+2+$self->{cursor_h}, '' );
+  addstr( $self->{cursor_v}, $self->{num} + 2 + $self->{cursor_h}, '' );
   }
 
 # }}}
 
-# {{{ _update_cursor()
+# {{{ _update_cursor
 #
 # Update the cursor position
 #
@@ -579,7 +610,7 @@ sub _update_cursor
   {
   my ( $self ) = @_;
 
-  addstr( $self->{cursor_v}, 5+2+$self->{cursor_h}, '' );
+  addstr( $self->{cursor_v}, $self->{num} + 2 + $self->{cursor_h}, '' );
   noutrefresh();
   doupdate;
   }
@@ -596,15 +627,11 @@ Please report any bugs or feature requests to C<bug-editor at rt.cpan.org>, or t
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Pane>.
 I will be notified, and then you'll automatically be notified of progress on your bug as I make changes.
 
-
-
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc Pane
-
 
 You can also look for information at:
 
@@ -628,9 +655,7 @@ L<http://search.cpan.org/dist/Pane>
 
 =back
 
-
 =head1 ACKNOWLEDGEMENTS
-
 
 =head1 COPYRIGHT & LICENSE
 
@@ -638,7 +663,6 @@ Copyright 2008 Jeffrey Goff, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
-
 
 =cut
 
