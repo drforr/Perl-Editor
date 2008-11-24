@@ -3,6 +3,7 @@ package Pane;
 use warnings;
 use strict;
 use Curses;
+use List::Util qw(min);
 
 =head1 NAME
 
@@ -153,6 +154,9 @@ sub set_mode
 sub _global_v { my ( $self ) = @_; $self->{top} + $self->{cursor_v} }
 sub _global_h { my ( $self ) = @_; $self->{left} + $self->{cursor_h} }
 
+#
+# Use easy-out tests
+#
 # {{{ viewport movement
 
 # {{{ viewport_down
@@ -167,10 +171,10 @@ without affecting the cursor's location.
 sub viewport_down
   {
   my ( $self ) = @_;
+  return if $self->{viewport_height} >= $self->{pane_height};
+  return if $self->_global_v >= $self->{viewport_width};
 
   $self->{top}++;
-  $self->{top} = $self->_excess_height if
-    $self->{top} > $self->_excess_height;
   }
 
 # }}}
@@ -187,6 +191,7 @@ without affecting the cursor's location.
 sub viewport_flush_bottom
   {
   my ( $self ) = @_;
+  return if $self->{viewport_height} >= $self->{pane_height};
 
   $self->{top} = $self->_excess_height;
   }
@@ -205,10 +210,10 @@ without affecting the cursor's location.
 sub viewport_up
   {
   my ( $self ) = @_;
+  return if $self->{viewport_height} >= $self->{pane_height};
+  return if $self->{top} <= 0;
 
   $self->{top}--;
-  $self->{top} = 0 if
-    $self->{top} < 0;
   }
 
 # }}}
@@ -243,10 +248,10 @@ without affecting the cursor's location.
 sub viewport_left
   {
   my ( $self ) = @_;
+  return if $self->{viewport_width} >= $self->{pane_width};
+  return if $self->_global_h <= 0;
 
   $self->{left}--;
-  $self->{left} = 0 if
-    $self->{left} < 0;
   }
 
 # }}}
@@ -281,10 +286,10 @@ without affecting the cursor's location.
 sub viewport_right
   {
   my ( $self ) = @_;
+  return if $self->{viewport_width} >= $self->{pane_width};
+  return if $self->_global_h >= $self->{viewport_width};
 
   $self->{left}++;
-  $self->{left} = $self->_excess_width if
-    $self->{left} > $self->_excess_width;
   }
 
 # }}}
@@ -301,6 +306,7 @@ without affecting the cursor's location.
 sub viewport_flush_right
   {
   my ( $self ) = @_;
+  return if $self->{viewport_width} >= $self->{pane_width};
 
   $self->{left} = $self->_excess_width;
   }
@@ -324,7 +330,7 @@ sub cursor_flush_bottom
   {
   my ( $self ) = @_;
 
-  $self->{cursor_v} = $self->{viewport_height} - 1;
+  $self->{cursor_v} = min( $self->{viewport_height}, $self->{pane_height} ) - 1;
   $self->viewport_flush_bottom();
   }
 
@@ -342,6 +348,8 @@ the bottom.
 sub cursor_down
   {
   my ( $self ) = @_;
+  return if $self->{cursor_v} >= min( $self->{pane_height}, $self->{viewport_height} ) - 1 and
+    $self->_global_v >= $self->{viewport_height};
 
   $self->{cursor_v}++;
   if ( $self->{cursor_v} >= $self->{viewport_height} )
@@ -364,6 +372,7 @@ Move the cursor up one unit. This may move the viewport if the cursor is at the 
 sub cursor_up
   {
   my ( $self ) = @_;
+  return if $self->{cursor_v} <= 0 and $self->{top} <= 0;
 
   $self->{cursor_v}--;
   if ( $self->{cursor_v} < 0 )
@@ -406,8 +415,9 @@ the viewport.
 sub cursor_flush_right
   {
   my ( $self ) = @_;
+  return if $self->{cursor_h} >= min( length($self->{content}[$self->{cursor_v}+$self->{top}]), $self->{pane_width}, $self->{viewport_width} ) - 1 and $self->_global_h >= $self->{viewport_width};
 
-  $self->{cursor_h} = $self->{viewport_width} - 1;
+  $self->{cursor_h} = min( length($self->{content}[$self->{cursor_v}+$self->{top}]), $self->{pane_width}, $self->{viewport_width} ) - 1;
   $self->viewport_flush_right();
   }
 
@@ -424,11 +434,13 @@ Move the cursor right one unit. This may move the viewport if the cursor is at t
 sub cursor_right
   {
   my ( $self ) = @_;
+  return if $self->{cursor_h} >= min( length($self->{content}[$self->{cursor_v}+$self->{top}]), $self->{pane_width}, $self->{viewport_width} ) - 1 and
+    $self->_global_h >= $self->{viewport_width};
 
   $self->{cursor_h}++;
   if ( $self->{cursor_h} >= $self->{viewport_width} )
     {
-    $self->{cursor_h} = $self->{viewport_width} - 1;
+    $self->{cursor_h} = min( length($self->{content}[$self->{cursor_v}+$self->{top}]), $self->{pane_width}, $self->{viewport_width} ) - 1;
     $self->viewport_right();
     }
   }
@@ -446,6 +458,7 @@ Move the cursor left one unit. This may move the viewport if the cursor is at th
 sub cursor_left
   {
   my ( $self ) = @_;
+  return if $self->_global_h <= 0;
 
   $self->{cursor_h}--;
   if ( $self->{cursor_h} < 0 )
@@ -538,9 +551,10 @@ sub update
   {
   my ( $self )   = @_;
   my $file_lines = $self->{content};
+  my $height = min( $self->{pane_height}, $self->{viewport_height} );
 
 # {{{ Display visible rows
-  for my $cur_row ( 0 .. $self->{viewport_height} - 1 )
+  for my $cur_row ( 0 .. $height - 1 )
     {
     my $cur_offset = $cur_row + $self->{top};
     my $remainder = '';
@@ -592,7 +606,6 @@ sub _update_modeline
   attrset(A_REVERSE);
   addstr( $self->{viewport_height}, 0, uc($self->{mode}) );
   attrset(A_NORMAL);
-  addstr( $self->{cursor_v}, $self->{cursor_h}, '' );
   }
 
 # }}}
