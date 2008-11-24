@@ -91,7 +91,6 @@ sub new
     content => $args{content},
     mode    => q{normal},
 
-    num => 5,
     undo_stack => [],
     };
 
@@ -170,8 +169,8 @@ sub viewport_down
   my ( $self ) = @_;
 
   $self->{top}++;
-#  $self->{top} = $self->_excess_height if
-#    $self->{top} > $self->_excess_height;
+  $self->{top} = $self->_excess_height if
+    $self->{top} > $self->_excess_height;
   }
 
 # }}}
@@ -208,8 +207,8 @@ sub viewport_up
   my ( $self ) = @_;
 
   $self->{top}--;
-#  $self->{top} = 0 if
-#    $self->{top} < 0;
+  $self->{top} = 0 if
+    $self->{top} < 0;
   }
 
 # }}}
@@ -246,8 +245,8 @@ sub viewport_left
   my ( $self ) = @_;
 
   $self->{left}--;
-#  $self->{left} = 0 if
-#    $self->{left} < 0;
+  $self->{left} = 0 if
+    $self->{left} < 0;
   }
 
 # }}}
@@ -284,8 +283,8 @@ sub viewport_right
   my ( $self ) = @_;
 
   $self->{left}++;
-#  $self->{left} = $self->_excess_width if
-#    $self->{left} > $self->_excess_width;
+  $self->{left} = $self->_excess_width if
+    $self->{left} > $self->_excess_width;
   }
 
 # }}}
@@ -408,7 +407,7 @@ sub cursor_flush_right
   {
   my ( $self ) = @_;
 
-  $self->{cursor_h} = $self->{viewport_width} - $self->{num} - 1;
+  $self->{cursor_h} = $self->{viewport_width} - 1;
   $self->viewport_flush_right();
   }
 
@@ -427,9 +426,9 @@ sub cursor_right
   my ( $self ) = @_;
 
   $self->{cursor_h}++;
-  if ( $self->{cursor_h} >= $self->{viewport_width} - $self->{num} )
+  if ( $self->{cursor_h} >= $self->{viewport_width} )
     {
-    $self->{cursor_h} = $self->{viewport_width} - $self->{num} - 1;
+    $self->{cursor_h} = $self->{viewport_width} - 1;
     $self->viewport_right();
     }
   }
@@ -539,7 +538,6 @@ sub update
   {
   my ( $self )   = @_;
   my $file_lines = $self->{content};
-  my $width      = $self->{viewport_width} - $self->{num};
 
 # {{{ Display visible rows
   for my $cur_row ( 0 .. $self->{viewport_height} - 1 )
@@ -553,19 +551,16 @@ sub update
           (
           $file_lines->[$cur_offset],
           $self->{left},
-          $self->{viewport_width} - $self->{num}
+          $self->{viewport_width}
           );
       $remainder .=
-        ' ' x ( $width - length($remainder) ) if length($remainder) < $width;
+        ' ' x ( $self->{viewport_width} - length($remainder) ) if length($remainder) < $self->{viewport_width};
       }
 
     move( $cur_row, 0 );
     clrtoeol();
 
-    addstr
-      (
-      sprintf( "%$self->{num}d: %s", $cur_offset + 1, $remainder )
-      );
+    addstr( $remainder );
     }
 
 # }}}
@@ -597,7 +592,7 @@ sub _update_modeline
   attrset(A_REVERSE);
   addstr( $self->{viewport_height}, 0, uc($self->{mode}) );
   attrset(A_NORMAL);
-  addstr( $self->{cursor_v}, $self->{num} + 2 + $self->{cursor_h}, '' );
+  addstr( $self->{cursor_v}, $self->{cursor_h}, '' );
   }
 
 # }}}
@@ -610,7 +605,7 @@ sub _update_cursor
   {
   my ( $self ) = @_;
 
-  addstr( $self->{cursor_v}, $self->{num} + 2 + $self->{cursor_h}, '' );
+  addstr( $self->{cursor_v}, $self->{cursor_h}, '' );
   noutrefresh();
   doupdate;
   }
