@@ -106,7 +106,7 @@ sub new
 sub _excess_width
   {
   my ( $self ) = @_;
-  $self->{pane_width} - $self->{viewport_width}
+  return $self->{pane_width} - $self->{viewport_width}
   }
 
 # }}}
@@ -170,8 +170,8 @@ sub viewport_down
   my ( $self ) = @_;
 
   $self->{top}++;
-  $self->{top} = $self->_excess_height if
-    $self->{top} > $self->_excess_height;
+#  $self->{top} = $self->_excess_height if
+#    $self->{top} > $self->_excess_height;
   }
 
 # }}}
@@ -208,8 +208,8 @@ sub viewport_up
   my ( $self ) = @_;
 
   $self->{top}--;
-  $self->{top} = 0 if
-    $self->{top} < 0;
+#  $self->{top} = 0 if
+#    $self->{top} < 0;
   }
 
 # }}}
@@ -246,8 +246,8 @@ sub viewport_left
   my ( $self ) = @_;
 
   $self->{left}--;
-  $self->{left} = 0 if
-    $self->{left} < 0;
+#  $self->{left} = 0 if
+#    $self->{left} < 0;
   }
 
 # }}}
@@ -284,8 +284,8 @@ sub viewport_right
   my ( $self ) = @_;
 
   $self->{left}++;
-  $self->{left} = $self->_excess_width if
-    $self->{left} > $self->_excess_width;
+#  $self->{left} = $self->_excess_width if
+#    $self->{left} > $self->_excess_width;
   }
 
 # }}}
