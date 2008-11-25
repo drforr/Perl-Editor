@@ -11,7 +11,7 @@ use Curses;
 use POE;
 use POE::Wheel::Curses;
 
-use Pane;
+use EditPane;
 
 #
 # Available modes:
@@ -578,7 +578,7 @@ State
 # }}}
 
 # {{{ Create scrolling pane
-    $heap->{pane} = Pane->new
+    $heap->{pane} = EditPane->new
       ({
       pane_height     => scalar(@$file),
       viewport_height => $Curses::LINES - 1,

@@ -1,4 +1,4 @@
-package Pane;
+package EditPane;
 
 use warnings;
 use strict;
@@ -7,7 +7,7 @@ use List::Util qw(min);
 
 =head1 NAME
 
-Pane - Pane creation and manipulation
+EditPane - Pane creation and manipulation
 
 =head1 VERSION
 
@@ -21,9 +21,9 @@ our $VERSION = '0.01';
 
 Handles the basic mechanics of scrolling a viewport in 2-D around a pane of text
 
-    use Pane;
+    use EditPane;
 
-    my $pane = Pane->new
+    my $pane = EditPane->new
         ({
         pane_height     => scalar(@{$heap->{file}}),
         viewport_height => $Curses::LINES - $row_starts{list},
@@ -632,14 +632,14 @@ Jeffrey Goff, C<< <drforr at pobox.com> >>
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-editor at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Pane>.
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=EditPane>.
 I will be notified, and then you'll automatically be notified of progress on your bug as I make changes.
 
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Pane
+    perldoc EditPane
 
 You can also look for information at:
 
@@ -647,19 +647,19 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Pane>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=EditPane>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/Pane>
+L<http://annocpan.org/dist/EditPane>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/Pane>
+L<http://cpanratings.perl.org/d/EditPane>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/Pane>
+L<http://search.cpan.org/dist/EditPane>
 
 =back
 
@@ -674,4 +674,4 @@ under the same terms as Perl itself.
 
 =cut
 
-1; # End of Pane
+1; # End of EditPane
