@@ -49,6 +49,26 @@ sub new
 
 # }}}
 
+# {{{ viewport_width
+
+=head2 viewport_width
+
+=cut
+
+sub viewport_width { my ( $self ) = @_; return $self->{viewport_width} } 
+
+# }}}
+
+# {{{ viewport_height
+
+=head2 viewport_height
+
+=cut
+
+sub viewport_height { my ( $self ) = @_; return $self->{viewport_height} } 
+
+# }}}
+
 # {{{ set_viewport_width
 
 =head2 set_viewport_width
