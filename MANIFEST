@@ -4,7 +4,7 @@ MANIFEST
 Makefile.PL
 README
 lib/SExpr-Edit.pm
-lib/Pane.pm
+lib/EditPane.pm
 t/00-load.t
 t/01-SExpr-Edit.t
 t/pod-coverage.t
