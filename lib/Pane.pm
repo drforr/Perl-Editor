@@ -78,6 +78,7 @@ sub viewport_height { my ( $self ) = @_; return $self->{viewport_height} }
 sub set_viewport_width
   {
   my ( $self, $viewport_width ) = @_;
+  croak "viewport width not specified!" if !$viewport_width;
   croak "viewport width too small!" if $viewport_width <= 0;
   $self->{viewport_width} = $viewport_width;
   } 
@@ -93,6 +94,7 @@ sub set_viewport_width
 sub set_viewport_height
   {
   my ( $self, $viewport_height ) = @_;
+  croak "viewport height not specified!" if !$viewport_height;
   croak "viewport height too small!" if $viewport_height <= 0;
   $self->{viewport_height} = $viewport_height;
   } 
@@ -108,6 +110,7 @@ sub set_viewport_height
 sub set_pane_width
   {
   my ( $self, $pane_width ) = @_;
+  croak "pane width not specified!" if !$pane_width;
   croak "pane width too small!" if $pane_width <= 0;
   $self->{pane_width} = $pane_width;
   } 
@@ -123,6 +126,7 @@ sub set_pane_width
 sub set_pane_height
   {
   my ( $self, $pane_height ) = @_;
+  croak "pane height not specified!" if !$pane_height;
   croak "pane height too small!" if $pane_height <= 0;
   $self->{pane_height} = $pane_height;
   } 
@@ -325,9 +329,10 @@ sub cursor_down
     $self->{top}++;
     }
 
-  if ( $self->{top} >= $self->_max_height - $self->{viewport_height} )
+  my $bottom = $self->_max_height - $self->{viewport_height};
+  if ( $self->{top} >= $bottom )
     {
-    $self->{top} = $self->_max_height - $self->{viewport_height};
+    $self->{top} = $bottom;
     }
   }
 
@@ -353,9 +358,10 @@ sub cursor_right
     $self->{left}++;
     }
 
-  if ( $self->{left} >= $self->_max_width - $self->{viewport_width} )
+  my $right = $self->_max_width - $self->{viewport_width};
+  if ( $self->{left} >= $right )
     {
-    $self->{left} = $self->_max_width - $self->{viewport_width};
+    $self->{left} = $right;
     }
   }
 

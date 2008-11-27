@@ -77,6 +77,7 @@ sub new
 
   _default({ self => \%args });
 
+# {{{ Superclass
   my $self = $class->SUPER::new
     ({
     pane_width      => $args{pane_width},
@@ -84,6 +85,8 @@ sub new
     viewport_width  => $args{viewport_width},
     viewport_height => $args{viewport_height},
     });
+
+# }}}
 
   $self->{content}    = $args{content};
   $self->{mode}       = q{normal};
@@ -99,7 +102,7 @@ sub new
 sub _deep_copy_content
   {
   my ( $self ) = @_;
-  my $content = [];
+  my $content  = [];
 
   for my $line ( @{$self->{content}} )
     {
@@ -185,10 +188,9 @@ sub update
   {
   my ( $self )   = @_;
   my $file_lines = $self->{content};
-  my $height     = $self->_min_height;
 
 # {{{ Display visible rows
-  for my $cur_row ( 0 .. $height - 1 )
+  for my $cur_row ( 0 .. $self->_min_height - 1 )
     {
     my $cur_offset = $cur_row + $self->viewport_v;
     my $cur_line   = $file_lines->[$cur_offset];
@@ -235,8 +237,8 @@ sub _update_modeline
   {
   my ( $self ) = @_;
 
-  attrset(A_REVERSE);
-  addstr( $self->viewport_height, 0, uc($self->{mode}) );
+  attrset(A_BOLD);
+  addstr( $self->viewport_height, 0, '-- ' . uc($self->{mode}) . ' --' );
   attrset(A_NORMAL);
   }
 

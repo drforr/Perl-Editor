@@ -33,18 +33,12 @@ sub Normal
   {
   my ( $args ) = @_;
   my $trie     = $args->{trie};
-  my $sub      = $args->{sub};
 
-  if ( ref( $trie ) )
+  $trie = [ $trie ] unless ref $trie;
+
+  for my $key ( @$trie )
     {
-    for my $key ( @$trie )
-      {
-      $editor_key{normal}{$key} = $sub;
-      }
-    }
-  else
-    {
-    $editor_key{normal}{$trie} = $sub;
+    $editor_key{normal}{$key} = $args->{sub};
     }
   }
 
@@ -55,18 +49,12 @@ sub Insert
   {
   my ( $args ) = @_;
   my $trie     = $args->{trie};
-  my $sub      = $args->{sub};
 
-  if ( ref( $trie ) )
+  $trie = [ $trie ] unless ref $trie;
+
+  for my $key ( @$trie )
     {
-    for my $key ( @$trie )
-      {
-      $editor_key{insert}{$key} = $sub;
-      }
-    }
-  else
-    {
-    $editor_key{insert}{$trie} = $sub;
+    $editor_key{insert}{$key} = $args->{sub};
     }
   }
 
@@ -146,11 +134,11 @@ Normal
   trie => 'x',
   sub => sub
     {
-  my ( $args ) = @_;
-  my $pane     = $args->{heap}->{pane};
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
 
-  $pane->delete;
-  $pane->update;
+    $pane->delete;
+    $pane->update;
     }
   });
 
@@ -658,13 +646,11 @@ State
     $keystroke = uc( keyname($keystroke) ) if
       $keystroke =~ m{ ^ \d{2,} $ }x;
 
-    if ( $editor_key{$mode}{$keystroke} )
+    for my $ed_mode ( $mode, 'default' )
       {
-      $editor_key{$mode}{$keystroke}->($args,$keystroke);
-      }
-    elsif ( $editor_key{default}{$keystroke} )
-      {
-      $editor_key{default}{$keystroke}->($args,$keystroke);
+      next unless $editor_key{$ed_mode}{$keystroke};
+      $editor_key{$ed_mode}{$keystroke}->($args,$keystroke);
+      last;
       }
     }
   });
