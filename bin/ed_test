@@ -194,7 +194,7 @@ Keystroke
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
  
-    $pane->cursor_flush_right();
+    $pane->cursor_end_line();
     $pane->update;
     }
   });
@@ -716,21 +716,7 @@ Keystroke
 
 # vt
 
-# {{{ Normal '\cL' (np)
-Keystroke
-  ({
-  trie => qq{\cL},
-  type => q{normal},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $kernel   = $args->{kernel};
- 
-    $kernel->yield(q{update});
-    }
-  });
-
-# }}}
+# np
 
 # cr
 
@@ -793,22 +779,7 @@ Keystroke
 
 # #
 
-# {{{ Normal '$', KEY_EOL
-Keystroke
-  ({
-  trie => [q{KEY_EOL},q{$}],
-  type => q{normal},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_flush_right();
-    $pane->update;
-    }
-  });
-
-# }}}
+# $
 
 # %
 
@@ -1239,6 +1210,22 @@ Keystroke
 # ]
 
 # ^
+# {{{ Normal '^'
+Keystroke
+  ({
+  trie => [q{^}],
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_beginning_line();
+    $pane->update;
+    }
+  });
+
+# }}}
 
 # _
 

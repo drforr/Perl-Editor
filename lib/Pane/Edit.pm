@@ -128,6 +128,43 @@ sub set_mode
 
 # }}}
 
+# {{{ cursor_beginning_line
+sub cursor_beginning_line
+  {
+  my ( $self ) = @_;
+
+  my $line = $self->{content}->[ $self->global_cursor_v ];
+  if ( $line =~ m{ ^ (\s+) }mx )
+    {
+    $self->set_cursor_h({ pos => length($1) });
+    }
+  else
+    {
+    $self->cursor_flush_left;
+    }
+  }
+
+# }}}
+
+# {{{ cursor_end_line
+sub cursor_end_line
+  {
+  my ( $self ) = @_;
+
+  my $line = $self->{content}->[ $self->global_cursor_v ];
+  $line =~ s{ \s+ $ }{}mx;
+  if ( $line )
+    {
+    $self->set_cursor_h({ pos => length($line) - 1 });
+    }
+  else
+    {
+    $self->cursor_flush_left;
+    }
+  }
+
+# }}}
+
 # {{{ insert({ keystroke => $ch })
 sub insert
   {

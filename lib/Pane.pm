@@ -80,7 +80,7 @@ sub viewport_height
 
 # }}}
 
-# {{{ set_viewport_width
+# {{{ set_viewport_width({ width => 31 })
 
 =head2 set_viewport_width
 
@@ -88,15 +88,19 @@ sub viewport_height
 
 sub set_viewport_width
   {
-  my ( $self, $viewport_width ) = @_;
-  croak q{viewport width not specified!} if !$viewport_width;
-  croak q{viewport width too small!} if $viewport_width <= 0;
-  $self->{viewport_width} = $viewport_width;
+  my ( $self, $args ) = @_;
+
+  croak q{viewport width not specified!} if
+    !defined $args->{width};
+  croak q{viewport width too small!} if
+    $args->{width} <= 0;
+
+  $self->{viewport_width} = $args->{width};
   } 
 
 # }}}
 
-# {{{ set_viewport_height
+# {{{ set_viewport_height({ height => 31 })
 
 =head2 set_viewport_height
 
@@ -104,15 +108,19 @@ sub set_viewport_width
 
 sub set_viewport_height
   {
-  my ( $self, $viewport_height ) = @_;
-  croak q{viewport height not specified!} if !$viewport_height;
-  croak q{viewport height too small!} if $viewport_height <= 0;
-  $self->{viewport_height} = $viewport_height;
+  my ( $self, $args ) = @_;
+
+  croak q{viewport height not specified!} if
+    !defined $args->{height};
+  croak q{viewport height too small!} if
+    $args->{height} <= 0;
+
+  $self->{viewport_height} = $args->{height};
   } 
 
 # }}}
 
-# {{{ set_pane_width
+# {{{ set_pane_width({ width => 31 })
 
 =head2 set_pane_width
 
@@ -120,15 +128,19 @@ sub set_viewport_height
 
 sub set_pane_width
   {
-  my ( $self, $pane_width ) = @_;
-  croak q{pane width not specified!} if !$pane_width;
-  croak q{pane width too small!} if $pane_width <= 0;
-  $self->{pane_width} = $pane_width;
+  my ( $self, $args ) = @_;
+
+  croak q{pane width not specified!} if
+    !defined $args->{width};
+  croak q{pane width too small!} if
+    $args->{width} <= 0;
+
+  $self->{pane_width} = $args->{width};
   } 
 
 # }}}
 
-# {{{ set_pane_height
+# {{{ set_pane_height({ height => 31 })
 
 =head2 set_pane_height
 
@@ -136,10 +148,14 @@ sub set_pane_width
 
 sub set_pane_height
   {
-  my ( $self, $pane_height ) = @_;
-  croak q{pane height not specified!} if !$pane_height;
-  croak q{pane height too small!} if $pane_height <= 0;
-  $self->{pane_height} = $pane_height;
+  my ( $self, $args ) = @_;
+
+  croak q{pane height not specified!} if
+    !defined $args->{height};
+  croak q{pane height too small!} if
+    $args->{height} <= 0;
+
+  $self->{pane_height} = $args->{height};
   } 
 
 # }}}
@@ -262,6 +278,48 @@ sub cursor_h
   {
   my ( $self ) = @_;
   return $self->{cursor_h};
+  }
+
+# }}}
+
+# {{{ set_cursor_v({ pos => 1 })
+
+=head2 set_cursor_v
+
+Set the cursor's vertical position
+
+=cut
+
+sub set_cursor_v
+  {
+  my ( $self, $args ) = @_;
+
+  croak q{cursor above viewport} if
+    $args->{pos} < 0;
+  croak q{cursor below viewport} if
+    $args->{pos} >= $self->{viewport_height};
+  $self->{cursor_v} = $args->{pos};
+  }
+
+# }}}
+
+# {{{ set_cursor_h({ pos => 1 })
+
+=head2 set_cursor_h
+
+Set the cursor's horizontal position
+
+=cut
+
+sub set_cursor_h
+  {
+  my ( $self, $args ) = @_;
+
+  croak q{cursor left of viewport} if
+    $args->{pos} < 0;
+  croak q{cursor right of viewport} if
+    $args->{pos} >= $self->{viewport_width};
+  $self->{cursor_h} = $args->{pos};
   }
 
 # }}}
