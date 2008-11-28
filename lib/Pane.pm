@@ -6,7 +6,7 @@ use Carp;
 use List::Util qw(min max);
 
 use version;
-our $VERSION = qv('0.0.3');
+our $VERSION = q{0.0.3};
 
 # {{{ new
 

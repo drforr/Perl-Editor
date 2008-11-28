@@ -1,6 +1,6 @@
 package Pane::Edit;
 
-use base 'Pane';
+use base q{Pane};
 
 use warnings;
 use strict;
@@ -17,7 +17,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = q{0.0.3};
 
 =head1 SYNOPSIS
 
@@ -169,14 +169,13 @@ sub cursor_end_line
 sub insert
   {
   my ( $self, $args ) = @_;
-  my $ch              = $args->{keystroke};
 
   substr
     (
     $self->{content}->[ $self->global_cursor_v ],
     $self->global_cursor_h,
     0
-    ) = $ch;
+    ) = $args->{keystroke};
   }
 
 # }}}
