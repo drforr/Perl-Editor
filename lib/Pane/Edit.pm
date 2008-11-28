@@ -119,7 +119,7 @@ sub set_mode
   my ( $self, $args ) = @_;
   my $mode            = $args->{mode};
 
-  if ( $mode eq 'insert' )
+  if ( $mode eq q{insert} )
     {
     push @{$self->{undo_stack}}, $self->_deep_copy_content;
     }
@@ -149,7 +149,7 @@ sub insert_line
   {
   my ( $self ) = @_;
 
-  splice @{$self->{content}}, $self->global_cursor_v + 1, 0, '';
+  splice @{$self->{content}}, $self->global_cursor_v + 1, 0, q{};
   }
 
 # }}}
@@ -164,7 +164,7 @@ sub delete
     $self->{content}->[ $self->global_cursor_v ],
     $self->global_cursor_h,
     1
-    ) = '';
+    ) = q{};
   }
 
 # }}}
@@ -194,12 +194,12 @@ sub update
     {
     my $cur_offset = $cur_row + $self->viewport_v;
     my $cur_line   = $file_lines->[$cur_offset];
-    my $remainder = '';
+    my $remainder = q{};
     if ( length($cur_line) > $self->viewport_h )
       {
       $remainder =
         substr( $cur_line, $self->viewport_h, $self->viewport_width );
-      $remainder .= ' ' x ( $self->viewport_width - length($remainder) ) if
+      $remainder .= q{ } x ( $self->viewport_width - length($remainder) ) if
         length($remainder) < $self->viewport_width;
       }
 
@@ -238,7 +238,7 @@ sub _update_modeline
   my ( $self ) = @_;
 
   attrset(A_BOLD);
-  addstr( $self->viewport_height, 0, '-- ' . uc($self->{mode}) . ' --' );
+  addstr( $self->viewport_height, 0, q{-- } . uc($self->{mode}) . q{ --} );
   attrset(A_NORMAL);
   }
 
@@ -252,7 +252,7 @@ sub _update_cursor
   {
   my ( $self ) = @_;
 
-  addstr( $self->{cursor_v}, $self->{cursor_h}, '' );
+  addstr( $self->{cursor_v}, $self->{cursor_h}, q{} );
   }
 
 # }}}

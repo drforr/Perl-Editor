@@ -19,16 +19,17 @@ sub new
   my ( $proto, $args ) = @_;
   my $class = ref $proto || $proto;
 
-  croak "viewport width too small" if
+  croak q{viewport width too small} if
     $args->{viewport_width} and $args->{viewport_width} <= 0;
-  croak "viewport height too small" if
+  croak q{viewport height too small} if
     $args->{viewport_height} and $args->{viewport_height} <= 0;
 
-  croak "pane width too small" if
+  croak q{pane width too small} if
     $args->{pane_width} and $args->{pane_width} <= 0;
-  croak "pane height too small" if
+  croak q{pane height too small} if
     $args->{pane_height} and $args->{pane_height} <= 0;
 
+# {{{ Self
   my $self =
     {
     top => 0,
@@ -44,6 +45,8 @@ sub new
     cursor_v => 0,
     };
 
+# }}}
+
   return bless $self, $class;
   }
 
@@ -55,7 +58,11 @@ sub new
 
 =cut
 
-sub viewport_width { my ( $self ) = @_; return $self->{viewport_width} } 
+sub viewport_width
+  {
+  my ( $self ) = @_;
+  return $self->{viewport_width}
+  } 
 
 # }}}
 
@@ -65,7 +72,11 @@ sub viewport_width { my ( $self ) = @_; return $self->{viewport_width} }
 
 =cut
 
-sub viewport_height { my ( $self ) = @_; return $self->{viewport_height} } 
+sub viewport_height
+  {
+  my ( $self ) = @_;
+  return $self->{viewport_height}
+  } 
 
 # }}}
 
@@ -78,8 +89,8 @@ sub viewport_height { my ( $self ) = @_; return $self->{viewport_height} }
 sub set_viewport_width
   {
   my ( $self, $viewport_width ) = @_;
-  croak "viewport width not specified!" if !$viewport_width;
-  croak "viewport width too small!" if $viewport_width <= 0;
+  croak q{viewport width not specified!} if !$viewport_width;
+  croak q{viewport width too small!} if $viewport_width <= 0;
   $self->{viewport_width} = $viewport_width;
   } 
 
@@ -94,8 +105,8 @@ sub set_viewport_width
 sub set_viewport_height
   {
   my ( $self, $viewport_height ) = @_;
-  croak "viewport height not specified!" if !$viewport_height;
-  croak "viewport height too small!" if $viewport_height <= 0;
+  croak q{viewport height not specified!} if !$viewport_height;
+  croak q{viewport height too small!} if $viewport_height <= 0;
   $self->{viewport_height} = $viewport_height;
   } 
 
@@ -110,8 +121,8 @@ sub set_viewport_height
 sub set_pane_width
   {
   my ( $self, $pane_width ) = @_;
-  croak "pane width not specified!" if !$pane_width;
-  croak "pane width too small!" if $pane_width <= 0;
+  croak q{pane width not specified!} if !$pane_width;
+  croak q{pane width too small!} if $pane_width <= 0;
   $self->{pane_width} = $pane_width;
   } 
 
@@ -126,8 +137,8 @@ sub set_pane_width
 sub set_pane_height
   {
   my ( $self, $pane_height ) = @_;
-  croak "pane height not specified!" if !$pane_height;
-  croak "pane height too small!" if $pane_height <= 0;
+  croak q{pane height not specified!} if !$pane_height;
+  croak q{pane height too small!} if $pane_height <= 0;
   $self->{pane_height} = $pane_height;
   } 
 
@@ -367,6 +378,8 @@ sub cursor_right
 
 # }}}
 
+# {{{ Cursor flush movements
+
 # {{{ cursor_flush_top
 
 =head2 cursor_flush_top
@@ -450,6 +463,97 @@ sub cursor_flush_right
     $self->{left} = 0;
     }
   }
+
+# }}}
+
+# }}}
+
+# {{{ Cursor viewport movements
+
+# {{{ cursor_viewport_top
+
+=head2 cursor_viewport_top
+
+Return the cursor's vertical position relative to the viewport
+
+=cut
+
+sub cursor_viewport_top
+  {
+  my ( $self ) = @_;
+
+  $self->{cursor_v} = 0;
+  }
+
+# }}}
+
+# {{{ cursor_viewport_left
+
+=head2 cursor_viewport_left
+
+Return the cursor's horizontal position relative to the viewport
+
+=cut
+
+sub cursor_viewport_left
+  {
+  my ( $self ) = @_;
+
+  $self->{cursor_h} = 0;
+  }
+
+# }}}
+
+# {{{ cursor_viewport_bottom
+
+=head2 cursor_viewport_bottom
+
+Return the cursor's vertical position relative to the viewport
+
+=cut
+
+sub cursor_viewport_bottom
+  {
+  my ( $self ) = @_;
+
+  $self->{cursor_v} = $self->_min_height - 1;
+  }
+
+# }}}
+
+# {{{ cursor_viewport_right
+
+=head2 cursor_viewport_right
+
+Return the cursor's vertical position relative to the viewport
+
+=cut
+
+sub cursor_viewport_right
+  {
+  my ( $self ) = @_;
+
+  $self->{cursor_h} = $self->_min_width - 1;
+  }
+
+# }}}
+
+# {{{ cursor_viewport_vertical_center
+
+=head2 cursor_viewport_vertical_center
+
+Return the cursor's vertical position relative to the viewport
+
+=cut
+
+sub cursor_viewport_vertical_center
+  {
+  my ( $self ) = @_;
+
+  $self->{cursor_v} = ( $self->_min_height / 2 ) - 1;
+  }
+
+# }}}
 
 # }}}
 

@@ -64,72 +64,6 @@ sub State
 
 # {{{ Normal keystrokes
 
-# {{{ Normal '\cL'
-Keystroke
-  ({
-  trie => qq{\cL},
-  type => q{normal},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $kernel   = $args->{kernel};
- 
-    $kernel->yield(q{update});
-    }
-  });
-
-# }}}
-
-# {{{ Normal 'q'
-Keystroke
-  ({
-  trie => q{q},
-  type => q{normal},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $kernel   = $args->{kernel};
-
-    $kernel->yield(q{quit});
-    }
-  });
-
-# }}}
-
-# {{{ Normal 'u'
-Keystroke
-  ({
-  trie => q{u},
-  type => q{normal},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->undo;
-    $pane->update;
-    }
-  });
-
-# }}}
-
-# {{{ Normal 'x'
-Keystroke
-  ({
-  trie => q{x},
-  type => q{normal},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
-
-    $pane->delete;
-    $pane->update;
-    }
-  });
-
-# }}}
-
 # {{{ Normal KEY_BACKSPACE
 Keystroke
   ({
@@ -141,57 +75,6 @@ Keystroke
     my $pane     = $args->{heap}->{pane};
 
     $pane->cursor_left;
-    $pane->update;
-    }
-  });
-
-# }}}
-
-# {{{ Normal KEY_END, 'G'
-Keystroke
-  ({
-  trie => [q{KEY_END}, q{G}],
-  type => q{normal},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_flush_bottom();
-    $pane->update;
-    }
-  });
-
-# }}}
-
-# {{{ Normal KEY_DOWN, 'j'
-Keystroke
-  ({
-  trie => [q{KEY_DOWN}, q{j}],
-  type => q{normal},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_down();
-    $pane->update;
-    }
-  });
-
-# }}}
-
-# {{{ Normal KEY_UP, 'k'
-Keystroke
-  ({
-  trie => [q{KEY_UP}, q{k}],
-  type => q{normal},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_up();
     $pane->update;
     }
   });
@@ -215,7 +98,93 @@ Keystroke
 
 # }}}
 
-# {{{ Normal KEY_EOL, '$'
+# nul
+
+# soh
+
+# stx
+
+# etx
+
+# eot
+
+# enq
+
+# ack
+
+# bel
+
+# bs
+
+# ht
+
+# nl
+
+# vt
+
+# {{{ Normal '\cL' (np)
+Keystroke
+  ({
+  trie => qq{\cL},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $kernel   = $args->{kernel};
+ 
+    $kernel->yield(q{update});
+    }
+  });
+
+# }}}
+
+# cr
+
+# so
+
+# si
+
+# dle
+
+# dc1
+
+# dc2
+
+# dc3
+
+# dc4
+
+# nak
+
+# syn
+
+# etb
+
+# can
+
+# em
+
+# sub
+
+# esc
+
+# fs
+
+# gs
+
+# rs
+
+# us
+
+# ' '
+
+# !
+
+# "
+
+# #
+
+# {{{ Normal '$', KEY_EOL
 Keystroke
   ({
   trie => [q{KEY_EOL},q{$}],
@@ -232,24 +201,137 @@ Keystroke
 
 # }}}
 
-# {{{ Normal KEY_RIGHT, 'l', ' '
+# %
+
+# &
+
+# '
+
+# (
+
+# )
+
+# *
+
+# +
+
+# ,
+
+# -
+
+# .
+
+# /
+
+# {{{ Normal KEY_BEG, '0'
 Keystroke
   ({
-  trie => [q{KEY_RIGHT},q{l},q{ }],
+  trie => [q{KEY_BEG},q{0}],
   type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
  
-    $pane->cursor_right();
+    $pane->cursor_flush_left();
     $pane->update;
     }
   });
 
 # }}}
 
-# {{{ Normal KEY_LEFT, 'h'
+# 1-9
+
+# :
+
+# ;
+
+# <
+
+# =
+
+# >
+
+# ?
+
+# @
+
+# {{{ Normal 'a'
+Keystroke
+  ({
+  trie => q{a},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->set_mode({ mode => q{insert} });
+    $pane->cursor_right;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Normal 'A'
+Keystroke
+  ({
+  trie => q{A},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->set_mode({ mode => q{insert} });
+    $pane->cursor_flush_right;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# b
+
+# B
+
+# c
+
+# C
+
+# d
+
+# D
+
+# e
+
+# E
+
+# f
+
+# F
+
+# g
+
+# {{{ Normal 'G', KEY_END
+Keystroke
+  ({
+  trie => [q{KEY_END}, q{G}],
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_flush_bottom();
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Normal 'h', KEY_LEFT
 Keystroke
   ({
   trie => [q{KEY_LEFT},q{h}],
@@ -266,17 +348,17 @@ Keystroke
 
 # }}}
 
-# {{{ Normal KEY_BEG, '0'
+# {{{ Normal 'H'
 Keystroke
   ({
-  trie => [q{KEY_BEG},q{0}],
+  trie => q{H},
   type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
  
-    $pane->cursor_flush_left();
+    $pane->cursor_viewport_top;
     $pane->update;
     }
   });
@@ -318,41 +400,100 @@ Keystroke
 
 # }}}
 
-# {{{ Normal 'a'
+# {{{ Normal 'j', KEY_DOWN
 Keystroke
   ({
-  trie => q{a},
+  trie => [q{KEY_DOWN}, q{j}],
   type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
  
-    $pane->set_mode({ mode => q{insert} });
-    $pane->cursor_right;
+    $pane->cursor_down();
     $pane->update;
     }
   });
 
 # }}}
 
-# {{{ Normal 'A'
+# J
+
+# {{{ Normal 'k', KEY_UP
 Keystroke
   ({
-  trie => q{A},
+  trie => [q{KEY_UP}, q{k}],
   type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
  
-    $pane->set_mode({ mode => q{insert} });
-    $pane->cursor_flush_right;
+    $pane->cursor_up();
     $pane->update;
     }
   });
 
 # }}}
+
+# K
+
+# {{{ Normal 'l', ' ', KEY_RIGHT
+Keystroke
+  ({
+  trie => [q{KEY_RIGHT},q{l},q{ }],
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_right();
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Normal 'L'
+Keystroke
+  ({
+  trie => q{L},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_viewport_bottom;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# m
+
+# {{{ Normal 'M'
+Keystroke
+  ({
+  trie => q{M},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_viewport_vertical_center;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# n
+
+# N
 
 # {{{ Normal 'o'
 Keystroke
@@ -391,90 +532,80 @@ Keystroke
 
 # }}}
 
+# p
 
-# {{{ Normal 'H'
+# P
+
+#
+# Should be ':q'...
+#
+# {{{ Normal 'q'
 Keystroke
   ({
-  trie => q{H},
+  trie => q{q},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $kernel   = $args->{kernel};
+
+    $kernel->yield(q{quit});
+    }
+  });
+
+# }}}
+
+# Q
+
+# r
+
+# R
+
+# s
+
+# S
+
+# t
+
+# T
+
+# {{{ Normal 'u'
+Keystroke
+  ({
+  trie => q{u},
   type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
  
-    $pane->viewport_left();
+    $pane->undo;
     $pane->update;
     }
   });
 
 # }}}
 
-# {{{ Normal 'J'
+# U
+
+# v
+
+# V
+
+# w
+
+# W
+
+# {{{ Normal 'x'
 Keystroke
   ({
-  trie => q{J},
+  trie => q{x},
   type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
- 
-    $pane->viewport_down();
-    $pane->update;
-    }
-  });
 
-# }}}
-
-# {{{ Normal 'K'
-Keystroke
-  ({
-  trie => q{K},
-  type => q{normal},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->viewport_up();
-    $pane->update;
-    }
-  });
-
-# }}}
-
-# {{{ Normal 'L'
-Keystroke
-  ({
-  trie => q{L},
-  type => q{normal},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->viewport_right();
-    $pane->update;
-    }
-  });
-
-# }}}
-
-# }}}
-
-# {{{ Insert keystrokes
-
-# {{{ Insert KEY_BACKSPACE
-Keystroke
-  ({
-  trie => q{KEY_BACKSPACE},
-  type => q{insert},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_left;
     $pane->delete;
     $pane->update;
     }
@@ -482,22 +613,39 @@ Keystroke
 
 # }}}
 
-# {{{ Insert '\e'
-Keystroke
-  ({
-  trie => qq{\e},
-  type => q{insert},
-  sub => sub
-    {
-    my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->set_mode({ mode => q{normal} });
-    $pane->update;
-    }
-  });
+# X
+
+# y
+
+# Y
+
+# z
+
+# Z
+
+# [
+
+# \
+
+# ]
+
+# ^
+
+# _
+
+# `
+
+# {
+
+# |
+
+# }
+
+# ~
 
 # }}}
+
+# {{{ Insert keystrokes
 
 # {{{ Insert [...]
 Keystroke
@@ -525,6 +673,584 @@ Keystroke
   });
 
 # }}}
+
+# {{{ Insert KEY_BACKSPACE
+Keystroke
+  ({
+  trie => q{KEY_BACKSPACE},
+  type => q{insert},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_left;
+    $pane->delete;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# nul
+
+# soh
+
+# stx
+
+# etx
+
+# eot
+
+# enq
+
+# ack
+
+# bel
+
+# bs
+
+# ht
+
+# nl
+
+# vt
+
+# {{{ Normal '\cL' (np)
+Keystroke
+  ({
+  trie => qq{\cL},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $kernel   = $args->{kernel};
+ 
+    $kernel->yield(q{update});
+    }
+  });
+
+# }}}
+
+# cr
+
+# so
+
+# si
+
+# dle
+
+# dc1
+
+# dc2
+
+# dc3
+
+# dc4
+
+# nak
+
+# syn
+
+# etb
+
+# can
+
+# em
+
+# sub
+
+# {{{ Insert '\e' (esc)
+Keystroke
+  ({
+  trie => qq{\e},
+  type => q{insert},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->set_mode({ mode => q{normal} });
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# fs
+
+# gs
+
+# rs
+
+# us
+
+# ' '
+
+# !
+
+# "
+
+# #
+
+# {{{ Normal '$', KEY_EOL
+Keystroke
+  ({
+  trie => [q{KEY_EOL},q{$}],
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_flush_right();
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# %
+
+# &
+
+# '
+
+# (
+
+# )
+
+# *
+
+# +
+
+# ,
+
+# -
+
+# .
+
+# /
+
+# {{{ Normal KEY_BEG, '0'
+Keystroke
+  ({
+  trie => [q{KEY_BEG},q{0}],
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_flush_left();
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# 1-9
+
+# :
+
+# ;
+
+# <
+
+# =
+
+# >
+
+# ?
+
+# @
+
+# {{{ Normal 'a'
+Keystroke
+  ({
+  trie => q{a},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->set_mode({ mode => q{insert} });
+    $pane->cursor_right;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Normal 'A'
+Keystroke
+  ({
+  trie => q{A},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->set_mode({ mode => q{insert} });
+    $pane->cursor_flush_right;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# b
+
+# B
+
+# c
+
+# C
+
+# d
+
+# D
+
+# e
+
+# E
+
+# f
+
+# F
+
+# g
+
+# {{{ Normal 'G', KEY_END
+Keystroke
+  ({
+  trie => [q{KEY_END}, q{G}],
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_flush_bottom();
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Normal 'h', KEY_LEFT
+Keystroke
+  ({
+  trie => [q{KEY_LEFT},q{h}],
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+
+    $pane->cursor_left();
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Normal 'H'
+Keystroke
+  ({
+  trie => q{H},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_viewport_top;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Normal 'i'
+Keystroke
+  ({
+  trie => q{i},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->set_mode({ mode => q{insert} });
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Normal 'I'
+Keystroke
+  ({
+  trie => q{I},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->set_mode({ mode => q{insert} });
+    $pane->cursor_flush_left;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Normal 'j', KEY_DOWN
+Keystroke
+  ({
+  trie => [q{KEY_DOWN}, q{j}],
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_down();
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# J
+
+# {{{ Normal 'k', KEY_UP
+Keystroke
+  ({
+  trie => [q{KEY_UP}, q{k}],
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_up();
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# K
+
+# {{{ Normal 'l', ' ', KEY_RIGHT
+Keystroke
+  ({
+  trie => [q{KEY_RIGHT},q{l},q{ }],
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_right();
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Normal 'L'
+Keystroke
+  ({
+  trie => q{L},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_viewport_bottom;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# m
+
+# {{{ Normal 'M'
+Keystroke
+  ({
+  trie => q{M},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_viewport_vertical_center;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# n
+
+# N
+
+# {{{ Normal 'o'
+Keystroke
+  ({
+  trie => q{o},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->set_mode({ mode => q{insert} });
+    $pane->insert_line;
+    $pane->cursor_down;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Normal 'O'
+Keystroke
+  ({
+  trie => q{O},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+    
+    $pane->set_mode({ mode => q{insert} });
+    $pane->insert_line;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# p
+
+# P
+
+#
+# Should be ':q'...
+#
+# {{{ Normal 'q'
+Keystroke
+  ({
+  trie => q{q},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $kernel   = $args->{kernel};
+
+    $kernel->yield(q{quit});
+    }
+  });
+
+# }}}
+
+# Q
+
+# r
+
+# R
+
+# s
+
+# S
+
+# t
+
+# T
+
+# {{{ Normal 'u'
+Keystroke
+  ({
+  trie => q{u},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->undo;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# U
+
+# v
+
+# V
+
+# w
+
+# W
+
+# {{{ Normal 'x'
+Keystroke
+  ({
+  trie => q{x},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+
+    $pane->delete;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# X
+
+# y
+
+# Y
+
+# z
+
+# Z
+
+# [
+
+# \
+
+# ]
+
+# ^
+
+# _
+
+# `
+
+# {
+
+# |
+
+# }
+
+# ~
 
 # }}}
 
