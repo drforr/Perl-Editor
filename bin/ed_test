@@ -25,36 +25,18 @@ use Pane::Edit;
 my %editor_key;
 my %inline_state;
 
-#
-# Attributes were kinda neat, but cluttering up the namespace.
-#
-# {{{ Normal({ trie => $trie, sub => $sub })
-sub Normal
+# {{{ Keystroke({ trie => $trie, type => $type, sub => $sub })
+sub Keystroke
   {
   my ( $args ) = @_;
   my $trie     = $args->{trie};
+  my $type     = $args->{type};
 
   $trie = [ $trie ] unless ref $trie;
 
   for my $key ( @$trie )
     {
-    $editor_key{normal}{$key} = $args->{sub};
-    }
-  }
-
-# }}}
-
-# {{{ Insert({ trie => $trie, sub => $sub })
-sub Insert
-  {
-  my ( $args ) = @_;
-  my $trie     = $args->{trie};
-
-  $trie = [ $trie ] unless ref $trie;
-
-  for my $key ( @$trie )
-    {
-    $editor_key{insert}{$key} = $args->{sub};
+    $editor_key{$type}{$key} = $args->{sub};
     }
   }
 
@@ -83,9 +65,10 @@ sub State
 # {{{ Normal keystrokes
 
 # {{{ Normal '\cL'
-Normal
+Keystroke
   ({
   trie => qq{\cL},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -98,9 +81,10 @@ Normal
 # }}}
 
 # {{{ Normal 'q'
-Normal
+Keystroke
   ({
-  trie => 'q',
+  trie => q{q},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -113,9 +97,10 @@ Normal
 # }}}
 
 # {{{ Normal 'u'
-Normal
+Keystroke
   ({
-  trie => 'u',
+  trie => q{u},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -129,9 +114,10 @@ Normal
 # }}}
 
 # {{{ Normal 'x'
-Normal
+Keystroke
   ({
-  trie => 'x',
+  trie => q{x},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -145,9 +131,10 @@ Normal
 # }}}
 
 # {{{ Normal KEY_BACKSPACE
-Normal
+Keystroke
   ({
-  trie => 'KEY_BACKSPACE',
+  trie => q{KEY_BACKSPACE},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -161,9 +148,10 @@ Normal
 # }}}
 
 # {{{ Normal KEY_END, 'G'
-Normal
+Keystroke
   ({
-  trie => ['KEY_END', 'G'],
+  trie => [q{KEY_END}, q{G}],
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -177,9 +165,10 @@ Normal
 # }}}
 
 # {{{ Normal KEY_DOWN, 'j'
-Normal
+Keystroke
   ({
-  trie => ['KEY_DOWN', 'j'],
+  trie => [q{KEY_DOWN}, q{j}],
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -193,9 +182,10 @@ Normal
 # }}}
 
 # {{{ Normal KEY_UP, 'k'
-Normal
+Keystroke
   ({
-  trie => ['KEY_UP', 'k'],
+  trie => [q{KEY_UP}, q{k}],
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -209,9 +199,10 @@ Normal
 # }}}
 
 # {{{ Normal KEY_HOME
-Normal
+Keystroke
   ({
-  trie => 'KEY_HOME',
+  trie => q{KEY_HOME},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -225,9 +216,10 @@ Normal
 # }}}
 
 # {{{ Normal KEY_EOL, '$'
-Normal
+Keystroke
   ({
-  trie => ['KEY_EOL','$'],
+  trie => [q{KEY_EOL},q{$}],
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -241,9 +233,10 @@ Normal
 # }}}
 
 # {{{ Normal KEY_RIGHT, 'l', ' '
-Normal
+Keystroke
   ({
-  trie => ['KEY_RIGHT','l',' '],
+  trie => [q{KEY_RIGHT},q{l},q{ }],
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -257,9 +250,10 @@ Normal
 # }}}
 
 # {{{ Normal KEY_LEFT, 'h'
-Normal
+Keystroke
   ({
-  trie => ['KEY_LEFT','h'],
+  trie => [q{KEY_LEFT},q{h}],
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -273,9 +267,10 @@ Normal
 # }}}
 
 # {{{ Normal KEY_BEG, '0'
-Normal
+Keystroke
   ({
-  trie => ['KEY_BEG','0'],
+  trie => [q{KEY_BEG},q{0}],
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -289,9 +284,10 @@ Normal
 # }}}
 
 # {{{ Normal 'i'
-Normal
+Keystroke
   ({
-  trie => 'i',
+  trie => q{i},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -305,9 +301,10 @@ Normal
 # }}}
 
 # {{{ Normal 'I'
-Normal
+Keystroke
   ({
-  trie => 'I',
+  trie => q{I},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -322,9 +319,10 @@ Normal
 # }}}
 
 # {{{ Normal 'a'
-Normal
+Keystroke
   ({
-  trie => 'a',
+  trie => q{a},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -339,9 +337,10 @@ Normal
 # }}}
 
 # {{{ Normal 'A'
-Normal
+Keystroke
   ({
-  trie => 'A',
+  trie => q{A},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -356,9 +355,10 @@ Normal
 # }}}
 
 # {{{ Normal 'o'
-Normal
+Keystroke
   ({
-  trie => 'o',
+  trie => q{o},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -374,9 +374,10 @@ Normal
 # }}}
 
 # {{{ Normal 'O'
-Normal
+Keystroke
   ({
-  trie => 'O',
+  trie => q{O},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -392,9 +393,10 @@ Normal
 
 
 # {{{ Normal 'H'
-Normal
+Keystroke
   ({
-  trie => 'H',
+  trie => q{H},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -408,9 +410,10 @@ Normal
 # }}}
 
 # {{{ Normal 'J'
-Normal
+Keystroke
   ({
-  trie => 'J',
+  trie => q{J},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -424,9 +427,10 @@ Normal
 # }}}
 
 # {{{ Normal 'K'
-Normal
+Keystroke
   ({
-  trie => 'K',
+  trie => q{K},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -440,9 +444,10 @@ Normal
 # }}}
 
 # {{{ Normal 'L'
-Normal
+Keystroke
   ({
-  trie => 'L',
+  trie => q{L},
+  type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
@@ -460,9 +465,10 @@ Normal
 # {{{ Insert keystrokes
 
 # {{{ Insert KEY_BACKSPACE
-Insert
+Keystroke
   ({
   trie => q{KEY_BACKSPACE},
+  type => q{insert},
   sub => sub
     {
     my ( $args ) = @_;
@@ -477,9 +483,10 @@ Insert
 # }}}
 
 # {{{ Insert '\e'
-Insert
+Keystroke
   ({
-  trie => "\e",
+  trie => qq{\e},
+  type => q{insert},
   sub => sub
     {
     my ( $args ) = @_;
@@ -493,18 +500,19 @@ Insert
 # }}}
 
 # {{{ Insert [...]
-Insert
+Keystroke
   ({
   trie =>
     [
-    'a'..'z',
-    'A'..'Z',
-    '0'..'9',
-    ' ',
-    '#',
-    ',',
+    q{a}..q{z},
+    q{A}..q{Z},
+    q{0}..q{9},
+    q{ },
+    q{#},
+    q{,},
     qw( ( [ { ` ~ ! @ $ % ^ & * - _ = + | ; : ' " < . > \ / ? } ] ) )
     ],
+  type => q{insert},
   sub => sub
     {
     my ( $args, $keystroke ) = @_;
@@ -546,7 +554,7 @@ sub get_lines
 #
 State
   ({
-  name => '_start',
+  name => q{_start},
   sub  => sub 
     {
     my ( $args ) = @_;
@@ -590,7 +598,7 @@ State
 #
 State
   ({
-  name => 'update',
+  name => q{update},
   sub  => sub
     {
     my ( $args ) = @_;
@@ -609,7 +617,7 @@ State
 #
 State
   ({
-  name => 'quit',
+  name => q{quit},
   sub  => sub
     {
     my ( $args ) = @_;
@@ -636,7 +644,7 @@ State
 #
 State
   ({
-  name => 'got_input',
+  name => q{got_input},
   sub  => sub
     {
     my ( $args )  = @_;
@@ -646,7 +654,7 @@ State
     $keystroke = uc( keyname($keystroke) ) if
       $keystroke =~ m{ ^ \d{2,} $ }x;
 
-    for my $ed_mode ( $mode, 'default' )
+    for my $ed_mode ( $mode, q{default} )
       {
       next unless $editor_key{$ed_mode}{$keystroke};
       $editor_key{$ed_mode}{$keystroke}->($args,$keystroke);
