@@ -88,9 +88,10 @@ sub new
 
 # }}}
 
-  $self->{content}    = $args{content};
-  $self->{mode}       = q{normal};
-  $self->{undo_stack} = [];
+  $self->{content}        = $args{content};
+  $self->{mode}           = q{normal};
+  $self->{undo_stack}     = [];
+  $self->{command_buffer} = q{};
 
   return $self;
   }
@@ -193,6 +194,36 @@ sub cursor_end_line
 
 # }}}
 
+# {{{ swap_case
+
+=head2 swap_case
+
+Insert the specified keystroke at the current cursor position
+
+=cut
+
+sub swap_case
+  {
+  my ( $self ) = @_;
+  my $ch = substr
+    (
+    $self->{content}->[ $self->global_cursor_v ],
+    $self->global_cursor_h,
+    1
+    );
+
+  $ch = ( $ch =~ m{ ^ [a-z] $ }mx ) ? uc($ch) : lc($ch);
+
+  substr
+    (
+    $self->{content}->[ $self->global_cursor_v ],
+    $self->global_cursor_h,
+    1
+    ) = $ch;
+  }
+
+# }}}
+
 # {{{ insert_character({ keystroke => $ch })
 
 =head2 insert_character({ keystroke => $ch })
@@ -211,6 +242,23 @@ sub insert_character
     $self->global_cursor_h,
     0
     ) = $args->{keystroke};
+  }
+
+# }}}
+
+# {{{ insert_command_character({ keystroke => $ch })
+
+=head2 insert_command_character({ keystroke => $ch })
+
+Insert the specified keystroke at the current cursor position
+
+=cut
+
+sub insert_command_character
+  {
+  my ( $self, $args ) = @_;
+
+  $self->{command_buffer} .= $args->{keystroke};
   }
 
 # }}}
@@ -248,6 +296,28 @@ sub delete_character
     (
     $self->{content}->[ $self->global_cursor_v ],
     $self->global_cursor_h,
+    1
+    ) = q{};
+  }
+
+# }}}
+
+# {{{ delete_command_character
+
+=head2 delete_command_character
+
+Delete the character at the cursor position
+
+=cut
+
+sub delete_command_character
+  {
+  my ( $self ) = @_;
+
+  substr
+    (
+    $self->{command_buffer},
+    -1,
     1
     ) = q{};
   }
@@ -339,16 +409,29 @@ Update the modeline at the bottom of the screen
 
 =cut
 
-#
-# Update the modeline
-#
 sub _update_modeline
   {
   my ( $self ) = @_;
+  my %modes =
+    (
+    q{normal} => 1,
+    q{insert} => 1,
+    q{visual} => 1,
+    );
 
-  attrset(A_BOLD);
-  addstr( $self->viewport_height, 0, q{-- } . uc($self->{mode}) . q{ --} );
-  attrset(A_NORMAL);
+  move( $self->viewport_height, 0 );
+  clrtoeol();
+
+  if ( defined $modes{$self->{mode}} )
+    {
+    attrset(A_BOLD);
+    addstr( q{-- } . uc($self->{mode}) . q{ --} );
+    attrset(A_NORMAL);
+    }
+  else
+    {
+    addstr( q{:} . $self->{command_buffer} );
+    }
   }
 
 # }}}

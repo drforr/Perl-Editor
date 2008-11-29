@@ -96,7 +96,7 @@ Keystroke
 # {{{ Normal-mode '$', KEY_EOL
 Keystroke
   ({
-  trie => [q{KEY_EOL},q{$}],
+  trie => [ q{KEY_EOL}, q{$} ],
   type => q{normal},
   sub => sub
     {
@@ -121,10 +121,10 @@ Keystroke
 
 # .  /
 
-# {{{ Normal-mode KEY_BEG, '0'
+# {{{ Normal-mode '0', KEY_BEG
 Keystroke
   ({
-  trie => [q{KEY_BEG},q{0}],
+  trie => [ q{KEY_BEG}, q{0} ],
   type => q{normal},
   sub => sub
     {
@@ -139,7 +139,26 @@ Keystroke
 # }}}
 
 # 1  2  3  4  5  6  7
-# 8  9  :  ;  <  =  >  ?
+# 8  9
+
+# {{{ Normal-mode ':'
+Keystroke
+  ({
+  trie => q{:},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->set_mode({ mode => q{command} });
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# ;  <  =  >  ?
 # @
 
 # {{{ Normal-mode 'A'
@@ -165,7 +184,7 @@ Keystroke
 # {{{ Normal-mode 'G', KEY_END
 Keystroke
   ({
-  trie => [q{KEY_END}, q{G}],
+  trie => [ q{KEY_END}, q{G} ],
   type => q{normal},
   sub => sub
     {
@@ -317,7 +336,7 @@ Keystroke
 # {{{ Normal-mode 'h', KEY_LEFT
 Keystroke
   ({
-  trie => [q{KEY_LEFT},q{h}],
+  trie => [ q{KEY_LEFT}, q{h} ],
   type => q{normal},
   sub => sub
     {
@@ -351,7 +370,7 @@ Keystroke
 # {{{ Normal-mode 'j', '+', cr, KEY_DOWN
 Keystroke
   ({
-  trie => [q{KEY_DOWN}, qq{\cM}, q{j}, q{+}],
+  trie => [ q{KEY_DOWN}, qq{\cM}, q{j}, q{+} ],
   type => q{normal},
   sub => sub
     {
@@ -368,7 +387,7 @@ Keystroke
 # {{{ Normal-mode 'k','-', KEY_UP
 Keystroke
   ({
-  trie => [q{KEY_UP}, q{-}, q{k}],
+  trie => [ q{KEY_UP}, q{-}, q{k} ],
   type => q{normal},
   sub => sub
     {
@@ -385,7 +404,7 @@ Keystroke
 # {{{ Normal-mode 'l', ' ', KEY_RIGHT
 Keystroke
   ({
-  trie => [q{KEY_RIGHT},q{l},q{ }],
+  trie => [ q{KEY_RIGHT},q{l},q{ } ],
   type => q{normal},
   sub => sub
     {
@@ -458,22 +477,40 @@ Keystroke
 
 # }}}
 
-# y  z  {  |  }  ~ 
+# y  z  {
 
-#
-# This should/will be :q
-#
-# {{{ Normal-mode 'q'
+# {{{ Normal-mode '|'
 Keystroke
   ({
-  trie => q{q},
+  trie => q{|},
   type => q{normal},
   sub => sub
     {
     my ( $args ) = @_;
-    my $kernel   = $args->{kernel};
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->cursor_flush_left();
+    $pane->update;
+    }
+  });
 
-    $kernel->yield(q{quit});
+# }}}
+
+# }
+
+# {{{ Normal-mode '~'
+Keystroke
+  ({
+  trie => q{~},
+  type => q{normal},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->swap_case;
+    $pane->cursor_right;
+    $pane->update;
     }
   });
 
@@ -522,13 +559,18 @@ Keystroke
   ({
   trie =>
     [
-    q{a}..q{z},
-    q{A}..q{Z},
-    q{0}..q{9},
-    q{ },
-    q{#},
-    q{,},
-    qw( ( [ { ` ~ ! @ $ % ^ & * - _ = + | ; : ' " < . > \ / ? } ] ) )
+    q{ }, q{!}, q{"}, q{#}, q{$}, q{%}, q{&}, q{'},
+    q{(}, q{)}, q{*}, q{+}, q{,}, q{-}, q{.}, q{/},
+    q{0}, q{1}, q{2}, q{3}, q{4}, q{5}, q{6}, q{7},
+    q{8}, q{9}, q{:}, q{;}, q{<}, q{=}, q{>}, q{?},
+    q{@}, q{A}, q{B}, q{C}, q{D}, q{E}, q{F}, q{G},
+    q{H}, q{I}, q{J}, q{K}, q{L}, q{M}, q{N}, q{O},
+    q{P}, q{Q}, q{R}, q{S}, q{T}, q{U}, q{V}, q{W},
+    q{X}, q{Y}, q{Z}, q{[}, q{\\}, q{]}, q{^}, q{_},
+    q{`}, q{a}, q{b}, q{c}, q{d}, q{e}, q{f}, q{g},
+    q{h}, q{i}, q{j}, q{k}, q{l}, q{m}, q{n}, q{o},
+    q{p}, q{q}, q{r}, q{s}, q{t}, q{u}, q{v}, q{w},
+    q{x}, q{y}, q{z}, q({), q{|}, q(}), q{~},
     ],
   type => q{insert},
   sub => sub
@@ -597,6 +639,117 @@ Keystroke
   });
 
 # }}}
+
+# }}}
+
+# {{{ Command keystrokes
+
+# {{{ Command-mode [...]
+Keystroke
+  ({
+  trie =>
+    [
+    q{a}..q{z},
+    q{A}..q{Z},
+    q{0}..q{9},
+    q{ },
+    q{#},
+    q{,},
+    qw( ( [ { ` ~ ! @ $ % ^ & * - _ = + | ; : ' " < . > \ / ? } ] ) )
+    ],
+  type => q{command},
+  sub => sub
+    {
+    my ( $args, $keystroke ) = @_;
+    my $pane                 = $args->{heap}->{pane};
+ 
+    $pane->insert_command_character({ keystroke => $keystroke });
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# {{{ Command-mode del, KEY_BACKSPACE
+Keystroke
+  ({
+  trie => q{KEY_BACKSPACE},
+  type => q{command},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+
+    $pane->delete_command_character;
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# nul  soh  stx  etx  eot  enq  ack  bel
+# bs   ht   nl   vt   np
+
+# {{{ Command-mode '\cM' (cr)
+Keystroke
+  ({
+  trie => qq{\cM},
+  type => q{command},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $kernel   = $args->{kernel};
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->set_mode({ mode => q{normal} });
+
+    if ( $pane->{command_buffer} eq 'q' )
+      {
+      $kernel->yield(q{quit});
+      }
+    else
+      {
+      $pane->update;
+      }
+    }
+  });
+
+# }}}
+
+# so   si
+# dle  dc1  dc2  dc3  dc4  nak  syn  etb
+# can  em   sub
+
+# {{{ Command-mode '\e' (esc)
+Keystroke
+  ({
+  trie => qq{\e},
+  type => q{command},
+  sub => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+ 
+    $pane->set_mode({ mode => q{normal} });
+    $pane->update;
+    }
+  });
+
+# }}}
+
+# fs   gs   rs   us
+# sp    !    "    #    $    %    &    '
+#  (    )    *    +    ,    -    .    /
+#  0    1    2    3    4    5    6    7
+#  8    9    :    ;    <    =    >    ?
+#  @    A    B    C    D    E    F    G
+#  H    I    J    K    L    M    N    O
+#  P    Q    R    S    T    U    V    W
+#  X    Y    Z    [    \    ]    ^    _
+#  `    a    b    c    d    e    f    g
+#  h    i    j    k    l    m    n    o
+#  p    q    r    s    t    u    v    w
+#  x    y    z    {    |    }    ~   
 
 # }}}
 
