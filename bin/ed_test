@@ -606,7 +606,7 @@ Keystroke
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
 
-    $pane->delete;
+    $pane->delete_character;
     $pane->update;
     }
   });
@@ -666,7 +666,7 @@ Keystroke
     my ( $args, $keystroke ) = @_;
     my $pane                 = $args->{heap}->{pane};
  
-    $pane->insert({ keystroke => $keystroke });
+    $pane->insert_character({ keystroke => $keystroke });
     $pane->cursor_right;
     $pane->update;
     }
@@ -685,7 +685,7 @@ Keystroke
     my $pane     = $args->{heap}->{pane};
  
     $pane->cursor_left;
-    $pane->delete;
+    $pane->delete_character;
     $pane->update;
     }
   });
@@ -1186,7 +1186,7 @@ Keystroke
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
 
-    $pane->delete;
+    $pane->delete_character;
     $pane->update;
     }
   });

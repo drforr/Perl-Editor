@@ -99,6 +99,13 @@ sub new
 
 # XXX THIS MUST CHANGE...
 # {{{ _deep_copy_content
+
+=head2 _deep_copy_content
+
+Return a deep copy of the pane's content for the undo stack. Q&D solution
+
+=cut
+
 sub _deep_copy_content
   {
   my ( $self ) = @_;
@@ -114,6 +121,13 @@ sub _deep_copy_content
 # }}}
 
 # {{{ set_mode({ mode => $mode })
+
+=head2 set_mode({ mode => $mode })
+
+Set the current editing mode
+
+=cut
+
 sub set_mode
   {
   my ( $self, $args ) = @_;
@@ -129,6 +143,13 @@ sub set_mode
 # }}}
 
 # {{{ cursor_beginning_line
+
+=head2 cursor_beginning_line
+
+Move the cursor to the beginning of a line
+
+=cut
+
 sub cursor_beginning_line
   {
   my ( $self ) = @_;
@@ -147,6 +168,13 @@ sub cursor_beginning_line
 # }}}
 
 # {{{ cursor_end_line
+
+=head2 cursor_end_line
+
+Move the cursor to the end of the line
+
+=cut
+
 sub cursor_end_line
   {
   my ( $self ) = @_;
@@ -165,8 +193,15 @@ sub cursor_end_line
 
 # }}}
 
-# {{{ insert({ keystroke => $ch })
-sub insert
+# {{{ insert_character({ keystroke => $ch })
+
+=head2 insert_character({ keystroke => $ch })
+
+Insert the specified keystroke at the current cursor position
+
+=cut
+
+sub insert_character
   {
   my ( $self, $args ) = @_;
 
@@ -181,6 +216,13 @@ sub insert
 # }}}
 
 # {{{ insert_line
+
+=head2 insert_line
+
+Insert a new line
+
+=cut
+
 sub insert_line
   {
   my ( $self ) = @_;
@@ -190,8 +232,15 @@ sub insert_line
 
 # }}}
 
-# {{{ delete
-sub delete
+# {{{ delete_character
+
+=head2 delete_character
+
+Delete the character at the cursor position
+
+=cut
+
+sub delete_character
   {
   my ( $self ) = @_;
 
@@ -206,6 +255,13 @@ sub delete
 # }}}
 
 # {{{ delete_line
+
+=head2 delete_line
+
+Delete the line at the current position
+
+=cut
+
 sub delete_line
   {
   my ( $self ) = @_;
@@ -216,10 +272,13 @@ sub delete_line
 # }}}
 
 # {{{ update
-#
-# Update the code display area.  This sort of handles the highlight bar and
-# scrolling, although it's really kind of cheezy.
-#
+
+=head2 update
+
+Update the screen contents
+
+=cut
+
 sub update
   {
   my ( $self )   = @_;
@@ -230,7 +289,7 @@ sub update
     {
     my $cur_offset = $cur_row + $self->viewport_v;
     my $cur_line   = $file_lines->[$cur_offset];
-    my $remainder = q{};
+    my $remainder  = q{};
     if ( length($cur_line) > $self->viewport_h )
       {
       $remainder =
@@ -256,6 +315,13 @@ sub update
 # }}}
 
 # {{{ undo
+
+=head2 undo
+
+Undo the effects of the last edit action
+
+=cut
+
 sub undo
   {
   my ( $self ) = @_;
@@ -266,6 +332,13 @@ sub undo
 # }}}
 
 # {{{ _update_modeline
+
+=head2 _update_modeline
+
+Update the modeline at the bottom of the screen
+
+=cut
+
 #
 # Update the modeline
 #
@@ -281,9 +354,13 @@ sub _update_modeline
 # }}}
 
 # {{{ _update_cursor
-#
-# Update the cursor position
-#
+
+=head2 _update_cursor
+
+Update the cursor position
+
+=cut
+
 sub _update_cursor
   {
   my ( $self ) = @_;

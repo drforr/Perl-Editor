@@ -324,6 +324,48 @@ sub set_cursor_h
 
 # }}}
 
+# {{{ add_cursor_v({ delta => 1 })
+
+=head2 add_cursor_v
+
+Set the cursor's vertical deltaition
+
+=cut
+
+sub add_cursor_v
+  {
+  my ( $self, $args ) = @_;
+
+  croak q{cursor above viewport} if
+    $self->{cursor_v} + $args->{delta} < 0;
+  croak q{cursor below viewport} if
+    $self->{cursor_v} + $args->{delta} >= $self->{viewport_height};
+  $self->{cursor_v} += $args->{delta};
+  }
+
+# }}}
+
+# {{{ add_cursor_h({ delta => 1 })
+
+=head2 add_cursor_h
+
+Set the cursor's horizontal deltaition
+
+=cut
+
+sub add_cursor_h
+  {
+  my ( $self, $args ) = @_;
+
+  croak q{cursor left of viewport} if
+    $self->{cursor_h} + $args->{delta} < 0;
+  croak q{cursor right of viewport} if
+    $self->{cursor_h} + $args->{delta} >= $self->{viewport_width};
+  $self->{cursor_h} += $args->{delta};
+  }
+
+# }}}
+
 # {{{ cursor_up
 
 =head2 cursor_up
@@ -647,6 +689,90 @@ sub viewport_v
   {
   my ( $self ) = @_;
   return $self->{top};
+  }
+
+# }}}
+
+# {{{ set_viewport_v({ pos => 1 })
+
+=head2 set_viewport_v
+
+Set the viewport's vertical position
+
+=cut
+
+sub set_viewport_v
+  {
+  my ( $self, $args ) = @_;
+
+  croak q{viewport above pane} if
+    $args->{pos} < 0;
+  croak q{viewport below pane} if
+    $args->{pos} >= $self->{pane_height} - $self->_min_height;
+  $self->{viewport_v} = $args->{pos};
+  }
+
+# }}}
+
+# {{{ set_viewport_h({ pos => 1 })
+
+=head2 set_viewport_h
+
+Set the viewport's horizontal position
+
+=cut
+
+sub set_viewport_h
+  {
+  my ( $self, $args ) = @_;
+
+  croak q{viewport left of pane} if
+    $args->{pos} < 0;
+  croak q{viewport right of pane} if
+    $args->{pos} >= $self->{viewport_width} - $self->_min_width;
+  $self->{viewport_h} = $args->{pos};
+  }
+
+# }}}
+
+# {{{ add_viewport_v({ delta => 1 })
+
+=head2 add_viewport_v
+
+Set the viewport's vertical deltaition
+
+=cut
+
+sub add_viewport_v
+  {
+  my ( $self, $args ) = @_;
+
+  croak q{viewport above pane} if
+    $self->{viewport_v} + $args->{delta} < 0;
+  croak q{viewport below pane} if
+    $self->{viewport_v} + $args->{delta} >= $self->{viewport_height} - $self->_min_height;
+  $self->{viewport_v} += $args->{delta};
+  }
+
+# }}}
+
+# {{{ add_viewport_h({ delta => 1 })
+
+=head2 add_viewport_h
+
+Set the viewport's horizontal deltaition
+
+=cut
+
+sub add_viewport_h
+  {
+  my ( $self, $args ) = @_;
+
+  croak q{viewport left of pane} if
+    $self->{viewport_h} + $args->{delta} < 0;
+  croak q{viewport right of pane} if
+    $self->{viewport_h} + $args->{delta} >= $self->{viewport_width} - $self->_min_height;
+  $self->{viewport_h} += $args->{delta};
   }
 
 # }}}
