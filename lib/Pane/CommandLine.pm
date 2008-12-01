@@ -5,7 +5,6 @@ use base q{Pane};
 use warnings;
 use strict;
 use Curses;
-use List::Util qw(min);
 
 =head1 NAME
 
@@ -38,27 +37,6 @@ Handles the basic mechanics of scrolling a viewport in 2-D around a pane of text
 
 =head1 FUNCTIONS
 
-# {{{ _default({ self => $args })
-
-=head2 _default
-
-Internal method, specifies defaults for missing arguments.
-
-=cut
-
-sub _default
-  {
-  my ( $args ) = @_;
-  my $self     = $args->{self};
-
-  $self->{viewport_width}  = 80  unless defined $self->{viewport_width};
-  $self->{pane_width}      = 132 unless defined $self->{pane_width};
-  $self->{viewport_height} = 52  unless defined $self->{viewport_height};
-  $self->{pane_height}     = 24  unless defined $self->{pane_height};
-  }
-
-# }}}
-
 # {{{ new({ ... })
 
 =head2 new({ ... })
@@ -72,10 +50,8 @@ Also you can pass in content at this point.
 sub new
   {
   my ( $proto, $args ) = @_;
-  my $class = ref $proto ? ref($proto) : $proto;
-  my %args = %$args;
-
-  _default({ self => \%args });
+  my $class            = ref( $proto ) ? ref( $proto ) : $proto;
+  my %args             = %$args;
 
 # {{{ Superclass
   my $self = $class->SUPER::new
@@ -88,9 +64,8 @@ sub new
 
 # }}}
 
-  $self->{content}        = $args{content};
-  $self->{mode}           = q{normal};
-  $self->{undo_stack}     = [];
+  $self->{content} = $args{content};
+  $self->{mode}    = q{normal};
 
   return $self;
   }
@@ -126,8 +101,8 @@ Move the cursor to the beginning of a line
 sub cursor_beginning_line
   {
   my ( $self ) = @_;
+  my $line     = $self->{content}->[ $self->global_cursor_v ];
 
-  my $line = $self->{content}->[ $self->global_cursor_v ];
   if ( $line =~ m{ ^ (\s+) }mx )
     {
     $self->set_cursor_h({ pos => length($1) });
@@ -151,9 +126,8 @@ Move the cursor to the end of the line
 sub cursor_end_line
   {
   my ( $self ) = @_;
+  my $line     = $self->{content}->[ $self->global_cursor_v ];
 
-  my $line = $self->{content}->[ $self->global_cursor_v ];
-  $line =~ s{ \s+ $ }{}mx;
   if ( $line )
     {
     $self->set_cursor_h({ pos => length($line) - 1 });
@@ -293,7 +267,7 @@ Update the screen contents
 
 sub update
   {
-  my ( $self )   = @_;
+  my ( $self ) = @_;
   my %modes =
     (
     q{normal} => 1,

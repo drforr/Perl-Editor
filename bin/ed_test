@@ -79,9 +79,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $kernel   = $args->{kernel};
- 
-    $kernel->yield(q{update});
+    $args->{kernel}->yield(q{update});
     }
   });
 
@@ -108,9 +106,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_end_line();
+    $args->{heap}->{pane}->cursor_end_line();
     }
   });
 
@@ -135,9 +131,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_flush_left();
+    $args->{heap}->{pane}->cursor_flush_left();
     }
   });
 
@@ -154,11 +148,8 @@ Keystroke
   sub => sub
     {
     my ( $args )     = @_;
-    my $pane         = $args->{heap}->{pane};
-    my $command_line = $args->{heap}->{command_line};
- 
-    $pane->set_mode({ mode => q{command} });
-    $command_line->set_mode({ mode => q{command} });
+    $args->{heap}->{pane}->set_mode({ mode => q{command} });
+    $args->{heap}->{command_line}->set_mode({ mode => q{command} });
     }
   });
 
@@ -176,10 +167,9 @@ Keystroke
     {
     my ( $args )     = @_;
     my $pane         = $args->{heap}->{pane};
-    my $command_line = $args->{heap}->{command_line};
+    $args->{heap}->{command_line}->set_mode({ mode => q{insert} });
  
     $pane->set_mode({ mode => q{insert} });
-    $command_line->set_mode({ mode => q{insert} });
     $pane->cursor_flush_right;
     }
   });
@@ -196,9 +186,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_flush_bottom();
+    $args->{heap}->{pane}->cursor_flush_bottom();
     }
   });
 
@@ -212,9 +200,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_viewport_top;
+    $args->{heap}->{pane}->cursor_viewport_top;
     }
   });
 
@@ -229,10 +215,9 @@ Keystroke
     {
     my ( $args )     = @_;
     my $pane         = $args->{heap}->{pane};
-    my $command_line = $args->{heap}->{command_line};
+    $args->{heap}->{command_line}->set_mode({ mode => q{insert} });
  
     $pane->set_mode({ mode => q{insert} });
-    $command_line->set_mode({ mode => q{insert} });
     $pane->cursor_flush_left;
     }
   });
@@ -249,9 +234,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_viewport_bottom;
+    $args->{heap}->{pane}->cursor_viewport_bottom;
     }
   });
 
@@ -265,9 +248,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_viewport_vertical_center;
+    $args->{heap}->{pane}->cursor_viewport_vertical_center;
     }
   });
 
@@ -284,10 +265,9 @@ Keystroke
     {
     my ( $args )     = @_;
     my $pane         = $args->{heap}->{pane};
-    my $command_line = $args->{heap}->{command_line};
+    $args->{heap}->{command_line}->set_mode({ mode => q{insert} });
     
     $pane->set_mode({ mode => q{insert} });
-    $command_line->set_mode({ mode => q{insert} });
     $pane->insert_line;
     }
   });
@@ -305,9 +285,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_beginning_line();
+    $args->{heap}->{pane}->cursor_beginning_line();
     }
   });
 
@@ -326,10 +304,9 @@ Keystroke
     {
     my ( $args )     = @_;
     my $pane         = $args->{heap}->{pane};
-    my $command_line = $args->{heap}->{command_line};
+    $args->{heap}->{command_line}->set_mode({ mode => q{insert} });
  
     $pane->set_mode({ mode => q{insert} });
-    $command_line->set_mode({ mode => q{insert} });
     $pane->cursor_right;
     }
   });
@@ -346,9 +323,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
-
-    $pane->cursor_left();
+    $args->{heap}->{pane}->cursor_left();
     }
   });
 
@@ -362,11 +337,8 @@ Keystroke
   sub => sub
     {
     my ( $args )     = @_;
-    my $pane         = $args->{heap}->{pane};
-    my $command_line = $args->{heap}->{command_line};
- 
-    $pane->set_mode({ mode => q{insert} });
-    $command_line->set_mode({ mode => q{insert} });
+    $args->{heap}->{pane}->set_mode({ mode => q{insert} });
+    $args->{heap}->{command_line}->set_mode({ mode => q{insert} });
     }
   });
 
@@ -380,9 +352,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_down();
+    $args->{heap}->{pane}->cursor_down();
     }
   });
 
@@ -396,9 +366,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_up();
+    $args->{heap}->{pane}->cursor_up();
     }
   });
 
@@ -412,9 +380,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_right();
+    $args->{heap}->{pane}->cursor_right();
     }
   });
 
@@ -431,10 +397,9 @@ Keystroke
     {
     my ( $args )     = @_;
     my $pane         = $args->{heap}->{pane};
-    my $command_line = $args->{heap}->{command_line};
+    $args->{heap}->{command_line}->set_mode({ mode => q{insert} });
  
     $pane->set_mode({ mode => q{insert} });
-    $command_line->set_mode({ mode => q{insert} });
     $pane->insert_line;
     $pane->cursor_down;
     }
@@ -452,9 +417,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->undo;
+    $args->{heap}->{pane}->undo;
     }
   });
 
@@ -470,9 +433,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
-
-    $pane->delete_character;
+    $args->{heap}->{pane}->delete_character;
     }
   });
 
@@ -488,9 +449,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_flush_left();
+    $args->{heap}->{pane}->cursor_flush_left();
     }
   });
 
@@ -523,9 +482,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
-
-    $pane->cursor_left;
+    $args->{heap}->{pane}->cursor_left;
     }
   });
 
@@ -539,9 +496,7 @@ Keystroke
   sub => sub
     {
     my ( $args ) = @_;
-    my $pane     = $args->{heap}->{pane};
- 
-    $pane->cursor_flush_top();
+    $args->{heap}->{pane}->cursor_flush_top();
     }
   });
 
@@ -563,12 +518,10 @@ Keystroke
   type => q{insert},
   sub => sub
     {
-    my ( $args )     = @_;
-    my $pane         = $args->{heap}->{pane};
-    my $command_line = $args->{heap}->{command_line};
- 
-    $pane->set_mode({ mode => q{normal} });
-    $command_line->set_mode({ mode => q{normal} });
+    my ( $args ) = @_;
+
+    $args->{heap}->{pane}->set_mode({ mode => q{normal} });
+    $args->{heap}->{command_line}->set_mode({ mode => q{normal} });
     }
   });
 
@@ -636,10 +589,7 @@ Keystroke
   sub => sub
     {
     my ( $args )     = @_;
-    my $pane         = $args->{heap}->{pane};
-    my $command_line = $args->{heap}->{command_line};
-
-    $command_line->delete_command_character;
+    $args->{heap}->{command_line}->delete_command_character;
     }
   });
 
@@ -656,7 +606,6 @@ Keystroke
   sub => sub
     {
     my ( $args )     = @_;
-    my $kernel       = $args->{kernel};
     my $pane         = $args->{heap}->{pane};
     my $command_line = $args->{heap}->{command_line};
  
@@ -669,7 +618,7 @@ Keystroke
     if ( $command eq q{q} )
       {
       $args->{heap}->{quitting} = 1; # XXX Think about this...
-      $kernel->yield(q{quit});
+      $args->{kernel}->yield(q{quit});
       }
     }
   });
@@ -689,12 +638,10 @@ Keystroke
     {
     my ( $args )     = @_;
     my $pane         = $args->{heap}->{pane};
-    my $command_line = $args->{heap}->{command_line};
 
+    $args->{heap}->{command_line}->set_mode({ mode => q{normal} });
     $pane->{content} = [''];
- 
     $pane->set_mode({ mode => q{normal} });
-    $command_line->set_mode({ mode => q{normal} });
     }
   });
 
@@ -724,10 +671,11 @@ Keystroke
   sub => sub
     {
     my ( $args, $keystroke ) = @_;
-    my $pane                 = $args->{heap}->{pane};
-    my $command_line         = $args->{heap}->{command_line};
- 
-    $command_line->insert_command_character({ keystroke => $keystroke });
+
+    $args->{heap}->{command_line}->insert_command_character
+      ({
+      keystroke => $keystroke
+      });
     }
   });
 
@@ -824,8 +772,10 @@ State
     my $pane         = $args->{heap}->{pane};
     my $command_line = $args->{heap}->{command_line};
  
-    $pane->update;
     $command_line->update;
+    $pane->update;
+    noutrefresh;
+    doupdate;
     }
   });
 

@@ -38,27 +38,6 @@ Handles the basic mechanics of scrolling a viewport in 2-D around a pane of text
 
 =head1 FUNCTIONS
 
-# {{{ _default({ self => $args })
-
-=head2 _default
-
-Internal method, specifies defaults for missing arguments.
-
-=cut
-
-sub _default
-  {
-  my ( $args ) = @_;
-  my $self     = $args->{self};
-
-  $self->{viewport_width}  = 80  unless defined $self->{viewport_width};
-  $self->{pane_width}      = 132 unless defined $self->{pane_width};
-  $self->{viewport_height} = 52  unless defined $self->{viewport_height};
-  $self->{pane_height}     = 24  unless defined $self->{pane_height};
-  }
-
-# }}}
-
 # {{{ new({ ... })
 
 =head2 new({ ... })
@@ -73,25 +52,21 @@ sub new
   {
   my ( $proto, $args ) = @_;
   my $class = ref $proto ? ref($proto) : $proto;
-  my %args = %$args;
-
-  _default({ self => \%args });
 
 # {{{ Superclass
   my $self = $class->SUPER::new
     ({
-    pane_width      => $args{pane_width},
-    pane_height     => $args{pane_height},
-    viewport_width  => $args{viewport_width},
-    viewport_height => $args{viewport_height},
+    pane_width      => $args->{pane_width},
+    pane_height     => $args->{pane_height},
+    viewport_width  => $args->{viewport_width},
+    viewport_height => $args->{viewport_height},
     });
 
 # }}}
 
-  $self->{content}        = $args{content};
-  $self->{mode}           = q{normal};
-  $self->{undo_stack}     = [];
-  $self->{command_buffer} = q{};
+  $self->{content}    = $args->{content};
+  $self->{mode}       = q{normal};
+  $self->{undo_stack} = [];
 
   return $self;
   }
@@ -154,8 +129,8 @@ Move the cursor to the beginning of a line
 sub cursor_beginning_line
   {
   my ( $self ) = @_;
+  my $line     = $self->{content}->[ $self->global_cursor_v ];
 
-  my $line = $self->{content}->[ $self->global_cursor_v ];
   if ( $line =~ m{ ^ (\s+) }mx )
     {
     $self->set_cursor_h({ pos => length($1) });
@@ -179,9 +154,8 @@ Move the cursor to the end of the line
 sub cursor_end_line
   {
   my ( $self ) = @_;
+  my $line     = $self->{content}->[ $self->global_cursor_v ];
 
-  my $line = $self->{content}->[ $self->global_cursor_v ];
-  $line =~ s{ \s+ $ }{}mx;
   if ( $line )
     {
     $self->set_cursor_h({ pos => length($line) - 1 });
@@ -246,23 +220,6 @@ sub insert_character
 
 # }}}
 
-# {{{ insert_command_character({ keystroke => $ch })
-
-=head2 insert_command_character({ keystroke => $ch })
-
-Insert the specified keystroke at the current cursor position
-
-=cut
-
-sub insert_command_character
-  {
-  my ( $self, $args ) = @_;
-
-  $self->{command_buffer} .= $args->{keystroke};
-  }
-
-# }}}
-
 # {{{ insert_line
 
 =head2 insert_line
@@ -296,28 +253,6 @@ sub delete_character
     (
     $self->{content}->[ $self->global_cursor_v ],
     $self->global_cursor_h,
-    1
-    ) = q{};
-  }
-
-# }}}
-
-# {{{ delete_command_character
-
-=head2 delete_command_character
-
-Delete the character at the cursor position
-
-=cut
-
-sub delete_command_character
-  {
-  my ( $self ) = @_;
-
-  substr
-    (
-    $self->{command_buffer},
-    -1,
     1
     ) = q{};
   }
@@ -376,10 +311,7 @@ sub update
 
 # }}}
 
-  $self->_update_modeline;
-  $self->_update_cursor;
-  noutrefresh();
-  doupdate;
+  addstr( $self->{cursor_v}, $self->{cursor_h}, q{} );
   }
 
 # }}}
@@ -397,58 +329,6 @@ sub undo
   my ( $self ) = @_;
 
   $self->{content} = pop @{$self->{undo_stack}};
-  }
-
-# }}}
-
-# {{{ _update_modeline
-
-=head2 _update_modeline
-
-Update the modeline at the bottom of the screen
-
-=cut
-
-sub _update_modeline
-  {
-  my ( $self ) = @_;
-  my %modes =
-    (
-    q{normal} => 1,
-    q{insert} => 1,
-    q{visual} => 1,
-    );
-
-  move( $self->viewport_height, 0 );
-  clrtoeol();
-
-  if ( defined $modes{$self->{mode}} )
-    {
-    attrset(A_BOLD);
-    addstr( q{-- } . uc($self->{mode}) . q{ --} );
-    attrset(A_NORMAL);
-    }
-  else
-    {
-    addstr( q{:} . $self->{command_buffer} );
-    }
-  }
-
-# }}}
-
-# {{{ _update_cursor
-
-=head2 _update_cursor
-
-Update the cursor position
-
-=cut
-
-sub _update_cursor
-  {
-  my ( $self ) = @_;
-
-  addstr( $self->{cursor_v}, $self->{cursor_h}, q{} );
   }
 
 # }}}
