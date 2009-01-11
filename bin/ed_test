@@ -23,60 +23,64 @@ use Pane::CommandLine;
 # Insert
 # Command-line
 #
-my %editor_key;
+my %editor_trie =
+  (
+  normal  => {},
+  insert  => {},
+  command => {}
+  );
 my %inline_state;
 
-# {{{ set_mode({ heap => $heap, mode => $mode })
-sub set_mode
+# {{{ insert_into_trie({ string => 'dl', mode => 'normal', sub => $fref })
+sub insert_into_trie
   {
   my ( $args ) = @_;
-  my $heap = $args->{heap};
-  my $mode = $args->{mode};
+  my $list     = $args->{string};
+  my $mode     = $args->{mode};
+  my $sub      = $args->{sub};
 
-  $heap->{pane}->set_mode({ mode => $mode });
-  $heap->{command_line}->set_mode({ mode => $mode });
-  }
+  $list = [ $list ] unless ref($list);
 
-# }}}
-
-# {{{ Keystroke({ trie => $trie, type => $type, sub => $sub })
-sub Keystroke
-  {
-  my ( $args ) = @_;
-  my $trie     = $args->{trie};
-  my $type     = $args->{type};
-
-  $trie = [ $trie ] unless ref $trie;
-
-  for my $key ( @$trie )
+  for my $string ( @$list )
     {
-    $editor_key{$type}{$key} = $args->{sub};
+    _insert_into_trie({ string => $string, mode => $mode, sub => $sub });
     }
   }
 
 # }}}
 
-# {{{ State({ name => $name, sub => $sub })
-sub State
+# {{{ _insert_into_trie({ string => 'dl', mode => 'normal', sub => $fref })
+sub _insert_into_trie
   {
   my ( $args ) = @_;
-  my $name     = $args->{name};
-  my $sub      = $args->{sub};
+  my $string = $args->{string};
+  my $mode   = $args->{mode};
+  my $sub    = $args->{sub};
+  my $tref   = $editor_trie{$mode};
+  my @char   = split //, $string;
 
-  $inline_state{$name} = sub
+  if ( $string =~ m{^KEY} )
     {
-    $sub->
-      ({
-      kernel => $_[KERNEL],
-      heap   => $_[HEAP],
-      args   => [ @_[ ARG0 .. $#_ ] ],
-      });
-    };
+    $tref->{$string} = $sub;
+    }
+  else 
+    {
+    while ( @char > 1 )
+      {
+      my $char = shift @char;
+      $tref->{$char} = {}
+        unless defined $tref->{$char};
+      $tref = $tref->{$char};
+      }
+    $tref->{$char[0]} = $sub;
+    }
   }
 
 # }}}
 
-# {{{ Normal-mode keystrokes
+# {{{ User commands
+
+# {{{ Normal-mode commands
 
 # nul soh stx etx eot enq ack bel
 # bs  ht
@@ -85,11 +89,11 @@ sub State
 # vt => 'j'
 
 # {{{ Normal-mode np (\cL)
-Keystroke
+insert_into_trie
   ({
-  trie => qq{\cL},
-  type => q{normal},
-  sub => sub
+  string => qq{\cL},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{kernel}->yield(q{update});
@@ -112,11 +116,11 @@ Keystroke
 #  !   "   # 
 
 # {{{ Normal-mode '$', KEY_EOL
-Keystroke
+insert_into_trie
   ({
-  trie => [ q{KEY_EOL}, q{$} ],
-  type => q{normal},
-  sub => sub
+  string => [ q{KEY_EOL}, q{$} ],
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_end_line();
@@ -137,11 +141,11 @@ Keystroke
 # .  /
 
 # {{{ Normal-mode '0', KEY_BEG
-Keystroke
+insert_into_trie
   ({
-  trie => [ q{KEY_BEG}, q{0} ],
-  type => q{normal},
-  sub => sub
+  string => [ q{KEY_BEG}, q{0} ],
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_flush_left();
@@ -154,11 +158,11 @@ Keystroke
 # 8  9
 
 # {{{ Normal-mode ':'
-Keystroke
+insert_into_trie
   ({
-  trie => q{:},
-  type => q{normal},
-  sub => sub
+  string => q{:},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     set_mode({ heap => $args->{heap}, mode => q{command} });
@@ -171,11 +175,11 @@ Keystroke
 # @
 
 # {{{ Normal-mode 'A'
-Keystroke
+insert_into_trie
   ({
-  trie => q{A},
-  type => q{normal},
-  sub => sub
+  string => q{A},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
@@ -190,11 +194,11 @@ Keystroke
 # B  C  D  E  F
 
 # {{{ Normal-mode 'G', KEY_END
-Keystroke
+insert_into_trie
   ({
-  trie => [ q{KEY_END}, q{G} ],
-  type => q{normal},
-  sub => sub
+  string => [ q{KEY_END}, q{G} ],
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_flush_bottom();
@@ -204,11 +208,11 @@ Keystroke
 # }}}
 
 # {{{ Normal-mode 'H'
-Keystroke
+insert_into_trie
   ({
-  trie => q{H},
-  type => q{normal},
-  sub => sub
+  string => q{H},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_viewport_top;
@@ -218,11 +222,11 @@ Keystroke
 # }}}
 
 # {{{ Normal-mode 'I'
-Keystroke
+insert_into_trie
   ({
-  trie => q{I},
-  type => q{normal},
-  sub => sub
+  string => q{I},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
@@ -237,11 +241,11 @@ Keystroke
 # J  K
 
 # {{{ Normal-mode 'L'
-Keystroke
+insert_into_trie
   ({
-  trie => q{L},
-  type => q{normal},
-  sub => sub
+  string => q{L},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_viewport_bottom;
@@ -251,11 +255,11 @@ Keystroke
 # }}}
 
 # {{{ Normal-mode 'M'
-Keystroke
+insert_into_trie
   ({
-  trie => q{M},
-  type => q{normal},
-  sub => sub
+  string => q{M},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_viewport_vertical_center;
@@ -267,11 +271,11 @@ Keystroke
 # N
 
 # {{{ Normal-mode 'O'
-Keystroke
+insert_into_trie
   ({
-  trie => q{O},
-  type => q{normal},
-  sub => sub
+  string => q{O},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
@@ -287,11 +291,11 @@ Keystroke
 # X  Y  Z  [  \  ]
 
 # {{{ Normal-mode '^'
-Keystroke
+insert_into_trie
   ({
-  trie => q{^},
-  type => q{normal},
-  sub => sub
+  string => q{^},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_beginning_line();
@@ -305,11 +309,11 @@ Keystroke
 # `
 
 # {{{ Normal-mode 'a'
-Keystroke
+insert_into_trie
   ({
-  trie => q{a},
-  type => q{normal},
-  sub => sub
+  string => q{a},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
@@ -321,14 +325,61 @@ Keystroke
 
 # }}}
 
-# b  c  d  e  f  g
+# b  c 
+
+# {{{ trie 'dd'
+insert_into_trie
+  ({
+  string => q{dd},
+  mode   => q{normal},
+  sub    => sub
+    {
+    my ( $args ) = @_;
+
+    $args->{heap}->{pane}->delete_line;
+    }
+  });
+
+# }}}
+
+# {{{ trie 'dl'
+insert_into_trie
+  ({
+  string => q{dl},
+  mode   => q{normal},
+  sub    => sub
+    {
+    my ( $args ) = @_;
+
+    $args->{heap}->{pane}->delete_character;
+    }
+  });
+
+# }}}
+
+# {{{ trie 'dw'
+insert_into_trie
+  ({
+  string => q{dw},
+  mode   => q{normal},
+  sub    => sub
+    {
+    my ( $args ) = @_;
+
+    $args->{heap}->{pane}->delete_word;
+    }
+  });
+
+# }}}
+
+# e  f  g
 
 # {{{ Normal-mode 'h', KEY_LEFT
-Keystroke
+insert_into_trie
   ({
-  trie => [ q{KEY_LEFT}, q{h} ],
-  type => q{normal},
-  sub => sub
+  string => [ q{KEY_LEFT}, q{h} ],
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_left();
@@ -338,11 +389,11 @@ Keystroke
 # }}}
 
 # {{{ Normal-mode 'i'
-Keystroke
+insert_into_trie
   ({
-  trie => q{i},
-  type => q{normal},
-  sub => sub
+  string => q{i},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     set_mode({ heap => $args->{heap}, mode => q{insert} });
@@ -352,11 +403,11 @@ Keystroke
 # }}}
 
 # {{{ Normal-mode 'j', '+', cr, KEY_DOWN, nl (\cJ)
-Keystroke
+insert_into_trie
   ({
-  trie => [ q{KEY_DOWN}, qq{\cM}, q{j}, q{+}, qq{\cJ}, qq{\ck} ],
-  type => q{normal},
-  sub => sub
+  string => [ q{KEY_DOWN}, qq{\cM}, q{j}, q{+}, qq{\cJ}, qq{\ck} ],
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_down();
@@ -366,11 +417,11 @@ Keystroke
 # }}}
 
 # {{{ Normal-mode 'k','-', KEY_UP, dle (\cP)
-Keystroke
+insert_into_trie
   ({
-  trie => [ q{KEY_UP}, q{-}, q{k}, qq{\cP} ],
-  type => q{normal},
-  sub => sub
+  string => [ q{KEY_UP}, q{-}, q{k}, qq{\cP} ],
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_up();
@@ -380,11 +431,11 @@ Keystroke
 # }}}
 
 # {{{ Normal-mode 'l', ' ', KEY_RIGHT
-Keystroke
+insert_into_trie
   ({
-  trie => [ q{KEY_RIGHT},q{l},q{ } ],
-  type => q{normal},
-  sub => sub
+  string => [ q{KEY_RIGHT},q{l},q{ } ],
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_right();
@@ -396,11 +447,11 @@ Keystroke
 # m  n
 
 # {{{ Normal-mode 'o'
-Keystroke
+insert_into_trie
   ({
-  trie => q{o},
-  type => q{normal},
-  sub => sub
+  string => q{o},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
@@ -416,11 +467,11 @@ Keystroke
 # p  q  r  s  t
 
 # {{{ Normal-mode 'u'
-Keystroke
+insert_into_trie
   ({
-  trie => q{u},
-  type => q{normal},
-  sub => sub
+  string => q{u},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->undo;
@@ -432,11 +483,11 @@ Keystroke
 # v  w
 
 # {{{ Normal-mode 'x'
-Keystroke
+insert_into_trie
   ({
-  trie => q{x},
-  type => q{normal},
-  sub => sub
+  string => q{x},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->delete_character;
@@ -448,11 +499,11 @@ Keystroke
 # y  z  {
 
 # {{{ Normal-mode '|'
-Keystroke
+insert_into_trie
   ({
-  trie => q{|},
-  type => q{normal},
-  sub => sub
+  string => q{|},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_flush_left();
@@ -464,11 +515,11 @@ Keystroke
 # }
 
 # {{{ Normal-mode '~'
-Keystroke
+insert_into_trie
   ({
-  trie => q{~},
-  type => q{normal},
-  sub => sub
+  string => q{~},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
@@ -481,11 +532,11 @@ Keystroke
 # }}}
 
 # {{{ Normal-mode del, KEY_BACKSPACE
-Keystroke
+insert_into_trie
   ({
-  trie => q{KEY_BACKSPACE},
-  type => q{normal},
-  sub => sub
+  string => q{KEY_BACKSPACE},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_left;
@@ -495,11 +546,11 @@ Keystroke
 # }}}
 
 # {{{ Normal-mode KEY_HOME
-Keystroke
+insert_into_trie
   ({
-  trie => q{KEY_HOME},
-  type => q{normal},
-  sub => sub
+  string => q{KEY_HOME},
+  mode   => q{normal},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{pane}->cursor_flush_top();
@@ -518,11 +569,11 @@ Keystroke
 # can  em   sub  
 
 # {{{ Insert-mode '\e' (esc)
-Keystroke
+insert_into_trie
   ({
-  trie => qq{\e},
-  type => q{insert},
-  sub => sub
+  string => qq{\e},
+  mode   => q{insert},
+  sub    => sub
     {
     my ( $args ) = @_;
     set_mode({ heap => $args->{heap}, mode => q{normal} });
@@ -534,9 +585,9 @@ Keystroke
 # fs   gs   rs   us
 
 # {{{ Insert-mode [...]
-Keystroke
+insert_into_trie
   ({
-  trie =>
+  string =>
     [
     q{ }, q{!}, q{"}, q{#}, q{$},  q{%}, q{&}, q{'},
     q{(}, q{)}, q{*}, q{+}, q{,},  q{-}, q{.}, q{/},
@@ -551,8 +602,8 @@ Keystroke
     q{p}, q{q}, q{r}, q{s}, q{t},  q{u}, q{v}, q{w},
     q{x}, q{y}, q{z}, q({), q{|},  q(}), q{~},
     ],
-  type => q{insert},
-  sub => sub
+  mode => q{insert},
+  sub  => sub
     {
     my ( $args, $keystroke ) = @_;
     my $pane                 = $args->{heap}->{pane};
@@ -565,11 +616,11 @@ Keystroke
 # }}}
 
 # {{{ Insert-mode del (KEY_BACKSPACE)
-Keystroke
+insert_into_trie
   ({
-  trie => q{KEY_BACKSPACE},
-  type => q{insert},
-  sub => sub
+  string => q{KEY_BACKSPACE},
+  mode   => q{insert},
+  sub    => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
@@ -586,11 +637,11 @@ Keystroke
 # {{{ Command keystrokes
 
 # {{{ Command-mode del, KEY_BACKSPACE
-Keystroke
+insert_into_trie
   ({
-  trie => q{KEY_BACKSPACE},
-  type => q{command},
-  sub => sub
+  string => q{KEY_BACKSPACE},
+  mode   => q{command},
+  sub    => sub
     {
     my ( $args ) = @_;
     $args->{heap}->{command_line}->delete_command_character;
@@ -603,11 +654,11 @@ Keystroke
 # bs   ht   nl   vt   np
 
 # {{{ Command-mode '\cM' (cr)
-Keystroke
+insert_into_trie
   ({
-  trie => qq{\cM},
-  type => q{command},
-  sub => sub
+  string => qq{\cM},
+  mode   => q{command},
+  sub    => sub
     {
     my ( $args )     = @_;
     my $pane         = $args->{heap}->{pane};
@@ -633,11 +684,11 @@ Keystroke
 # can  em   sub
 
 # {{{ Command-mode '\e' (esc)
-Keystroke
+insert_into_trie
   ({
-  trie => qq{\e},
-  type => q{command},
-  sub => sub
+  string => qq{\e},
+  mode   => q{command},
+  sub    => sub
     {
     my ( $args ) = @_;
     my $pane     = $args->{heap}->{pane};
@@ -652,9 +703,9 @@ Keystroke
 # fs   gs   rs   us
 
 # {{{ Command-mode [...]
-Keystroke
+insert_into_trie
   ({
-  trie =>
+  string =>
     [
     q{ }, q{!}, q{"}, q{#}, q{$},  q{%}, q{&}, q{'},
     q{(}, q{)}, q{*}, q{+}, q{,},  q{-}, q{.}, q{/},
@@ -669,8 +720,8 @@ Keystroke
     q{p}, q{q}, q{r}, q{s}, q{t},  q{u}, q{v}, q{w},
     q{x}, q{y}, q{z}, q({), q{|},  q(}), q{~},
     ],
-  type => q{command},
-  sub => sub
+  mode => q{command},
+  sub  => sub
     {
     my ( $args, $keystroke ) = @_;
 
@@ -682,6 +733,43 @@ Keystroke
   });
 
 # }}}
+
+# }}}
+
+# }}}
+
+#endwin;use YAML; die Dump(\%editor_trie);
+
+# {{{ set_mode({ heap => $heap, mode => $mode })
+sub set_mode
+  {
+  my ( $args ) = @_;
+  my $heap     = $args->{heap};
+  my $mode     = $args->{mode};
+
+  $heap->{pane}->set_mode({ mode => $mode });
+  $heap->{command_line}->set_mode({ mode => $mode });
+  }
+
+# }}}
+
+# {{{ State({ name => $name, sub => $sub })
+sub State
+  {
+  my ( $args ) = @_;
+  my $name     = $args->{name};
+  my $sub      = $args->{sub};
+
+  $inline_state{$name} = sub
+    {
+    $sub->
+      ({
+      kernel => $_[KERNEL],
+      heap   => $_[HEAP],
+      args   => [ @_[ ARG0 .. $#_ ] ],
+      });
+    };
+  }
 
 # }}}
 
@@ -750,7 +838,6 @@ State
       viewport_height => 1,
       pane_width      => $Curses::COLS,
       viewport_width  => $Curses::COLS,
-      content         => [''],
       });
 
 # }}}
@@ -822,17 +909,75 @@ State
     {
     my ( $args )  = @_;
     my $kernel    = $args->{kernel};
+    my $heap      = $args->{heap};
     my $keystroke = $args->{args}[0];
-    my $mode      = $args->{heap}{command_line}{mode};
+    my $mode      = $heap->{command_line}{mode};
 
     $keystroke = uc( keyname($keystroke) ) if
       $keystroke =~ m{ ^ \d{2,} $ }x;
 
-    for my $ed_mode ( $mode, q{default} )
+    my $tref = $editor_trie{$mode};
+
+# {{{ Handle multi-character commands... Yipes.
+    if ( $heap->{editor_trie_buffer} )
       {
-      next unless $editor_key{$ed_mode}{$keystroke};
-      $editor_key{$ed_mode}{$keystroke}->($args,$keystroke);
-      last;
+      my @char = split //, $heap->{editor_trie_buffer};
+
+      while ( @char > 1 )
+        {
+        my $char = shift @char;
+        if ( $tref->{$char} )
+          {
+          $tref = $tref->{$char};
+          }
+        else
+          {
+          beep;
+          delete $heap->{editor_trie_buffer};
+          return;
+          }
+        }
+
+      if ( $tref->{$char[0]}{$keystroke} )
+        {
+        if ( ref($tref->{$char[0]}{$keystroke}) eq 'CODE' )
+          {
+          $tref->{$char[0]}{$keystroke}->($args,$heap->{editor_trie_buffer} . $keystroke);
+          $heap->{editor_trie_buffer} = undef;
+          }
+        else
+          {
+          $heap->{editor_trie_buffer} .= $keystroke;
+          }
+        }
+      else
+        {
+        beep;
+        delete $heap->{editor_trie_buffer};
+        return;
+        }
+      }
+
+# }}}
+    else
+      {
+      if ( exists $tref->{$keystroke} )
+        {
+        if ( ref($tref->{$keystroke}) eq 'HASH' )
+          {
+          $heap->{editor_trie_buffer} = $keystroke;
+          }
+        else
+          {
+          $tref->{$keystroke}->($args,$keystroke);
+          }
+        }
+      else 
+        {
+        beep;
+        delete $heap->{editor_trie_buffer};
+        return;
+        }
       }
     $kernel->yield(q{update}) unless $args->{heap}->{quitting};
     }

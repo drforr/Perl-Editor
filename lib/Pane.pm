@@ -35,10 +35,10 @@ sub new
     top => 0,
     left => 0,
 
-    viewport_width  => $args->{viewport_width} || 80,
+    viewport_width  => $args->{viewport_width}  || 80,
     viewport_height => $args->{viewport_height} || 24,
 
-    pane_width  => $args->{pane_width} || 80,
+    pane_width  => $args->{pane_width}  || 80,
     pane_height => $args->{pane_height} || 24,
 
     cursor_h => 0,
@@ -55,6 +55,8 @@ sub new
 # {{{ viewport_width
 
 =head2 viewport_width
+
+Return the width of the viewport onto the pane.
 
 =cut
 

@@ -64,7 +64,7 @@ sub new
 
 # }}}
 
-  $self->{content} = $args{content};
+  $self->{content} = [ '' ];
   $self->{mode}    = q{normal};
 
   return $self;
@@ -101,7 +101,7 @@ Move the cursor to the beginning of a line
 sub cursor_beginning_line
   {
   my ( $self ) = @_;
-  my $line     = $self->{content}->[ $self->global_cursor_v ];
+  my $line     = $self->cur_line;
 
   if ( $line =~ m{ ^ (\s+) }mx )
     {
@@ -126,7 +126,7 @@ Move the cursor to the end of the line
 sub cursor_end_line
   {
   my ( $self ) = @_;
-  my $line     = $self->{content}->[ $self->global_cursor_v ];
+  my $line     = $self->cur_line;
 
   if ( $line )
     {
@@ -140,24 +140,19 @@ sub cursor_end_line
 
 # }}}
 
-# {{{ insert_character({ keystroke => $ch })
+# {{{ cur_line
 
-=head2 insert_character({ keystroke => $ch })
+=head2 cur_line
 
-Insert the specified keystroke at the current cursor position
+Return the current line
 
 =cut
 
-sub insert_character
+sub cur_line
   {
-  my ( $self, $args ) = @_;
+  my ( $self ) = @_;
 
-  substr
-    (
-    $self->{content}->[ $self->global_cursor_v ],
-    $self->global_cursor_h,
-    0
-    ) = $args->{keystroke};
+  return $self->{content}->[ $self->global_cursor_v ];
   }
 
 # }}}
@@ -192,28 +187,6 @@ sub insert_line
   my ( $self ) = @_;
 
   splice @{$self->{content}}, $self->global_cursor_v + 1, 0, q{};
-  }
-
-# }}}
-
-# {{{ delete_character
-
-=head2 delete_character
-
-Delete the character at the cursor position
-
-=cut
-
-sub delete_character
-  {
-  my ( $self ) = @_;
-
-  substr
-    (
-    $self->{content}->[ $self->global_cursor_v ],
-    $self->global_cursor_h,
-    1
-    ) = q{};
   }
 
 # }}}

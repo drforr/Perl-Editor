@@ -3,9 +3,10 @@ Changes
 MANIFEST
 Makefile.PL
 README
-lib/SExpr-Edit.pm
-lib/EditPane.pm
+lib/Pane.pm
+lib/Pane/CommandLine.pm
+lib/Pane/Edit.pm
 t/00-load.t
-t/01-SExpr-Edit.t
+t/01-Pane.t
 t/pod-coverage.t
 t/pod.t

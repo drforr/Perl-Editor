@@ -5,7 +5,6 @@ use base q{Pane};
 use warnings;
 use strict;
 use Curses;
-use List::Util qw(min);
 
 =head1 NAME
 
@@ -67,6 +66,8 @@ sub new
   $self->{content}    = $args->{content};
   $self->{mode}       = q{normal};
   $self->{undo_stack} = [];
+
+  $self->{normal_buffer} = '';
 
   return $self;
   }
@@ -271,7 +272,7 @@ sub delete_line
   {
   my ( $self ) = @_;
 
-  splice @{$self->{content}}, $self->global_cursor_v + 1, 1;
+  splice @{$self->{content}}, $self->global_cursor_v, 1;
   }
 
 # }}}
