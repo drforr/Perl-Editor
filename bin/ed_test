@@ -28,7 +28,8 @@ my %editor_trie =
   (
   normal  => {},
   insert  => {},
-  command => {}
+  command => {},
+  visual  => {},
   );
 my %inline_state;
 
@@ -140,9 +141,6 @@ insert_into_trie
   });
 
 # }}}
-
-# 1  2  3  4  5  6  7
-# 8  9
 
 # {{{ Normal-mode '1'..'9'
 insert_into_trie
@@ -492,6 +490,24 @@ insert_into_trie
 
 # v  w
 
+# {{{ Normal-mode 'v'
+insert_into_trie
+  ({
+  string => q{v},
+  mode   => q{normal},
+  sub    => sub
+    {
+    my ( $args ) = @_;
+    my $pane     = $args->{heap}->{pane};
+
+    set_mode({ heap => $args->{heap}, mode => q{visual} });
+    $pane->insert_line;
+    $pane->cursor_down;
+    }
+  });
+
+# }}}
+
 # {{{ Normal-mode 'x'
 insert_into_trie
   ({
@@ -743,6 +759,43 @@ insert_into_trie
   });
 
 # }}}
+
+# }}}
+
+# {{{ Visual keystrokes
+
+# nul soh stx etx eot enq ack bel
+# bs  ht  nl  vt  np  cr  so  si
+# dle dc1 dc2 dc3 dc4 nak syn etb
+# can em  sub esc
+
+# {{{ Visual-mode '\e' (esc)
+insert_into_trie
+  ({
+  string => qq{\e},
+  mode   => q{visual},
+  sub    => sub
+    {
+    my ( $args ) = @_;
+    set_mode({ heap => $args->{heap}, mode => q{visual} });
+    }
+  });
+
+# }}}
+
+# fs  gs  rs  us
+# sp  !   "   #   $   %   &   '
+# (   )   *   +   ,   -   .   /
+# 0   1   2   3   4   5   6   7
+# 8   9   :   ;   <   =   >   ?
+# @   A   B   C   D   E   F   G
+# H   I   J   K   L   M   N   O
+# P   Q   R   S   T   U   V   W
+# X   Y   Z   [   \   ]   ^   _
+# `   a   b   c   d   e   f   g
+# h   i   j   k   l   m   n   o
+# p   q   r   s   t   u   v   w
+# x   y   z   {   |   }   ~   del
 
 # }}}
 

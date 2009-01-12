@@ -132,6 +132,7 @@ sub cursor_beginning_line
   {
   my ( $self ) = @_;
   my $line     = $self->{content}->[ $self->global_cursor_v ];
+  delete $self->{cursor_eol};
 
   if ( $line =~ m{ ^ (\s+) }mx )
     {
@@ -157,6 +158,7 @@ sub cursor_end_line
   {
   my ( $self ) = @_;
   my $line     = $self->{content}->[ $self->global_cursor_v ];
+  $self->{cursor_eol} = 1;
 
   if ( $line )
     {
@@ -166,6 +168,7 @@ sub cursor_end_line
     {
     $self->cursor_flush_left;
     }
+  $self->{cursor_eol} = 1;
   }
 
 # }}}
@@ -292,15 +295,14 @@ sub update
   my $file_lines = $self->{content};
 
 # {{{ Calculate the actual cursor h-position based on the extant text.
-  my $cursor_h = max
+  my $cursor_h = min
     (
-    min
-      (
-      $self->{cursor_h},
-      length( $self->{content}->[ $self->global_cursor_v ] ) - 1
-      ),
-    0
+    $self->{cursor_h},
+    length( $self->{content}->[ $self->global_cursor_v ] ) - 1
     );
+  $cursor_h = length( $self->{content}->[ $self->global_cursor_v ] ) - 1
+    if $self->{cursor_eol};
+  $cursor_h = max( $cursor_h, 0 );
 
 # }}}
 
@@ -344,6 +346,96 @@ sub undo
   my ( $self ) = @_;
 
   $self->{content} = pop @{$self->{undo_stack}};
+  }
+
+# }}}
+
+# {{{ set_cursor_h({ pos => 1 })
+
+=head2 set_cursor_h
+
+Set the cursor's horizontal position
+
+=cut
+
+sub set_cursor_h
+  {
+  my ( $self, $args ) = @_;
+  delete $self->{cursor_eol};
+
+  $self->SUPER::set_cursor_h($args);
+  }
+
+# }}}
+
+# {{{ add_cursor_h({ delta => 1 })
+
+=head2 add_cursor_h
+
+Set the cursor's horizontal deltaition
+
+=cut
+
+sub add_cursor_h
+  {
+  my ( $self, $args ) = @_;
+  delete $self->{cursor_eol};
+
+  $self->SUPER::add_cursor_h($args);
+  }
+
+# }}}
+
+# {{{ cursor_left
+
+=head2 cursor_left
+
+Return the cursor's horizontal position relative to the viewport
+
+=cut
+
+sub cursor_left
+  {
+  my ( $self ) = @_;
+  delete $self->{cursor_eol};
+
+  $self->SUPER::cursor_left;
+  }
+
+# }}}
+
+# {{{ cursor_right
+
+=head2 cursor_right
+
+Return the cursor's vertical position relative to the viewport
+
+=cut
+
+sub cursor_right
+  {
+  my ( $self ) = @_;
+  delete $self->{cursor_eol};
+
+  $self->SUPER::cursor_right;
+  }
+
+# }}}
+
+# {{{ cursor_flush_left
+
+=head2 cursor_flush_left
+
+Return the cursor's horizontal position relative to the viewport
+
+=cut
+
+sub cursor_flush_left
+  {
+  my ( $self ) = @_;
+  delete $self->{cursor_eol};
+
+  $self->SUPER::cursor_flush_left;
   }
 
 # }}}
