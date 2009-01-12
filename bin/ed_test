@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use Carp qw(croak);
 use Readonly;
+use List::Util qw(max);
 
 use FindBin qw($Bin);
 use lib qq{$Bin/../lib};
@@ -37,42 +38,28 @@ sub insert_into_trie
   my ( $args ) = @_;
   my $list     = $args->{string};
   my $mode     = $args->{mode};
-  my $sub      = $args->{sub};
+  my $tref     = $editor_trie{$mode};
 
   $list = [ $list ] unless ref($list);
 
   for my $string ( @$list )
     {
-    _insert_into_trie({ string => $string, mode => $mode, sub => $sub });
-    }
-  }
-
-# }}}
-
-# {{{ _insert_into_trie({ string => 'dl', mode => 'normal', sub => $fref })
-sub _insert_into_trie
-  {
-  my ( $args ) = @_;
-  my $string = $args->{string};
-  my $mode   = $args->{mode};
-  my $sub    = $args->{sub};
-  my $tref   = $editor_trie{$mode};
-  my @char   = split //, $string;
-
-  if ( $string =~ m{^KEY} )
-    {
-    $tref->{$string} = $sub;
-    }
-  else 
-    {
-    while ( @char > 1 )
+    if ( $string =~ m{^KEY} )
       {
-      my $char = shift @char;
-      $tref->{$char} = {}
-        unless defined $tref->{$char};
-      $tref = $tref->{$char};
+      $tref->{$string} = $args->{sub};
       }
-    $tref->{$char[0]} = $sub;
+    else 
+      {
+      my @char = split //, $string;
+      while ( @char > 1 )
+        {
+        my $char = shift @char;
+        $tref->{$char} = {}
+          unless defined $tref->{$char};
+        $tref = $tref->{$char};
+        }
+      $tref->{$char[0]} = $args->{sub};
+      }
     }
   }
 
@@ -156,6 +143,29 @@ insert_into_trie
 
 # 1  2  3  4  5  6  7
 # 8  9
+
+# {{{ Normal-mode '1'..'9'
+insert_into_trie
+  ({
+  string => [ q{1}, q{2}, q{3}, q{4}, q{5}, q{6}, q{7}, q{8}, q{9} ],
+  mode   => q{normal},
+  sub    => sub
+    {
+    my ( $args, $keystroke ) = @_;
+    my $heap                 = $args->{heap};
+
+    if ( $heap->{repeat_count} and $heap->{repeat_count} > 0 )
+      {
+      $heap->{repeat_count} = ( $heap->{repeat_count} * 10 ) + $keystroke + 0;
+      }
+    else
+      {
+      $heap->{repeat_count} = $keystroke + 0;
+      }
+    }
+  });
+
+# }}}
 
 # {{{ Normal-mode ':'
 insert_into_trie
@@ -738,8 +748,6 @@ insert_into_trie
 
 # }}}
 
-#endwin;use YAML; die Dump(\%editor_trie);
-
 # {{{ set_mode({ heap => $heap, mode => $mode })
 sub set_mode
   {
@@ -809,15 +817,8 @@ State
 
     $heap->{curses} = POE::Wheel::Curses->new( InputEvent => q{got_input} );
 
-# {{{ Collect the longest string
     my $file       = get_lines({ filename => $filename });
-    my $pane_width = length($file->[0]);
-    for my $line_len ( map { length($_) } @$file )
-      {
-      $pane_width = $line_len if $line_len > $pane_width;
-      }
-
-# }}}
+    my $pane_width = max( map { length($_) } @$file );
 
 # {{{ Create scrolling pane
     $heap->{pane} = Pane::Edit->new
@@ -916,7 +917,8 @@ State
     $keystroke = uc( keyname($keystroke) ) if
       $keystroke =~ m{ ^ \d{2,} $ }x;
 
-    my $tref = $editor_trie{$mode};
+    my $repeat_count = $heap->{repeat_count} || 1;
+    my $tref         = $editor_trie{$mode};
 
 # {{{ Handle multi-character commands... Yipes.
     if ( $heap->{editor_trie_buffer} )
@@ -942,7 +944,12 @@ State
         {
         if ( ref($tref->{$char[0]}{$keystroke}) eq 'CODE' )
           {
-          $tref->{$char[0]}{$keystroke}->($args,$heap->{editor_trie_buffer} . $keystroke);
+          my $cmd = $heap->{editor_trie_buffer} . $keystroke;
+          for ( 1 .. $repeat_count )
+            {
+            $tref->{$char[0]}{$keystroke}->($args,$cmd);
+            }
+          $heap->{repeat_count} = undef;
           $heap->{editor_trie_buffer} = undef;
           }
         else
@@ -969,14 +976,24 @@ State
           }
         else
           {
-          $tref->{$keystroke}->($args,$keystroke);
+          if ( $keystroke =~ m{[1-9]} )
+            {
+            $tref->{$keystroke}->($args,$keystroke);
+            }
+          else
+            {
+            for ( 1 .. $repeat_count )
+              {
+              $tref->{$keystroke}->($args,$keystroke);
+              }
+            $heap->{repeat_count} = undef;
+            }
           }
         }
       else 
         {
         beep;
         delete $heap->{editor_trie_buffer};
-        return;
         }
       }
     $kernel->yield(q{update}) unless $args->{heap}->{quitting};

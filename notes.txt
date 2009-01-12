@@ -1,0 +1,93 @@
+Here's a simple example of what this should eventually be able to help with:
+
+I've got a main function, looks like this:
+
+# cut down for illustrative purposes...
+sub foo
+  {
+  for my $k ( @_ )
+    {
+    _foo($k);
+    }
+  }
+
+sub _foo { lots of stuff; }
+
+I want to mechanically remove the parameter wanking from _foo()'s prologue,
+and stuff the rest into the for{} loop.
+
+And of course the reverse, as that's probably going to be more frequently done.
+
+------------
+
+# This could be done automatically for those prologue variables that are only
+# used once...
+
+sub foo
+  {
+  my $blah = $_[3];
+
+  if ( $bling )
+    {
+    $x += $blah;
+    }
+  }
+
+=>
+
+sub foo
+  {
+  if ( $bling )
+    {
+    $x += $_[3]; # Replace $blah with the original parameter.
+    }
+  }
+
+-------
+
+Would it be interesting if:
+
+You were in a function like this:
+
+sub foo
+  {
+  $a += $name->{length};
+  # ...
+  }
+
+And when you typed:
+
+sub foo
+  {
+  $a += $name->{length};
+
+  $b += $name->{length};
+  }
+
+All of a sudden it did this:
+
+sub foo
+  {
+  my $name_length = $name->{length};
+  $a += $name_length;
+
+  $b += $name_length;
+  }
+
+------
+
+sub foo
+  {
+  my ( $args ) = @_;
+  my $list     = $args->{string};
+  }
+
+=>
+
+use Carp qw(croak);
+sub foo
+  {
+  my ( $args ) = @_;
+  croak "foo: argument 'string' required" unless $args->{string};
+  my $list = $args->{string};
+  }

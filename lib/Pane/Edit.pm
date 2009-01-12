@@ -1,5 +1,6 @@
 package Pane::Edit;
 
+use List::Util qw(min max);
 use base q{Pane};
 
 use warnings;
@@ -290,6 +291,19 @@ sub update
   my ( $self )   = @_;
   my $file_lines = $self->{content};
 
+# {{{ Calculate the actual cursor h-position based on the extant text.
+  my $cursor_h = max
+    (
+    min
+      (
+      $self->{cursor_h},
+      length( $self->{content}->[ $self->global_cursor_v ] ) - 1
+      ),
+    0
+    );
+
+# }}}
+
 # {{{ Display visible rows
   for my $cur_row ( 0 .. $self->_min_height - 1 )
     {
@@ -312,7 +326,7 @@ sub update
 
 # }}}
 
-  addstr( $self->{cursor_v}, $self->{cursor_h}, q{} );
+  addstr( $self->{cursor_v}, $cursor_h, q{} );
   }
 
 # }}}
