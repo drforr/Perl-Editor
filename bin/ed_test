@@ -111,7 +111,7 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{pane}->cursor_end_line();
+    $args->{heap}->{pane}->cursor_end_line;
     }
   });
 
@@ -136,7 +136,7 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{pane}->cursor_flush_left();
+    $args->{heap}->{pane}->cursor_flush_left;
     }
   });
 
@@ -209,7 +209,7 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{pane}->cursor_flush_bottom();
+    $args->{heap}->{pane}->cursor_flush_bottom;
     }
   });
 
@@ -306,7 +306,7 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{pane}->cursor_beginning_line();
+    $args->{heap}->{pane}->cursor_beginning_line;
     }
   });
 
@@ -358,8 +358,9 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
+    my $pane = $args->{heap}->{pane};
 
-    $args->{heap}->{pane}->delete_character;
+    $pane->delete_character;
     }
   });
 
@@ -390,7 +391,7 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{pane}->cursor_left();
+    $args->{heap}->{pane}->cursor_left;
     }
   });
 
@@ -418,7 +419,7 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{pane}->cursor_down();
+    $args->{heap}->{pane}->cursor_down;
     }
   });
 
@@ -432,7 +433,7 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{pane}->cursor_up();
+    $args->{heap}->{pane}->cursor_up;
     }
   });
 
@@ -446,7 +447,7 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{pane}->cursor_right();
+    $args->{heap}->{pane}->cursor_right;
     }
   });
 
@@ -516,7 +517,10 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{pane}->delete_character;
+    my $pane     = $args->{heap}->{pane};
+
+    $pane->delete_character;
+    #$pane->cursor_left; # Don't move the cursor in this case
     }
   });
 
@@ -532,7 +536,7 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{pane}->cursor_flush_left();
+    $args->{heap}->{pane}->cursor_flush_left;
     }
   });
 
@@ -579,7 +583,7 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{pane}->cursor_flush_top();
+    $args->{heap}->{pane}->cursor_flush_top;
     }
   });
 
@@ -669,8 +673,11 @@ insert_into_trie
   mode   => q{command},
   sub    => sub
     {
-    my ( $args ) = @_;
-    $args->{heap}->{command_line}->delete_character;
+    my ( $args )     = @_;
+    my $command_line = $args->{heap}->{command_line};
+
+    $command_line->delete_character;
+    $command_line->cursor_left;
     }
   });
 
@@ -750,11 +757,11 @@ insert_into_trie
   sub  => sub
     {
     my ( $args, $keystroke ) = @_;
+    my $heap                 = $args->{heap};
+    my $command_line         = $heap->{command_line};
 
-    $args->{heap}->{command_line}->insert_character
-      ({
-      keystroke => $keystroke
-      });
+    $command_line->insert_character ({ keystroke => $keystroke });
+    $command_line->cursor_right;
     }
   });
 
@@ -912,11 +919,21 @@ State
   sub  => sub
     {
     my ( $args )     = @_;
-    my $pane         = $args->{heap}->{pane};
-    my $command_line = $args->{heap}->{command_line};
+    my $heap         = $args->{heap};
+    my $pane         = $heap->{pane};
+    my $command_line = $heap->{command_line};
  
-    $command_line->update;
     $pane->update;
+    $command_line->update;
+
+    if ( $heap->{command_line}{mode} eq 'command' )
+      {
+      $command_line->update_cursor;
+      }
+    else
+      {
+      $pane->update_cursor;
+      }
     noutrefresh;
     doupdate;
     }
@@ -939,13 +956,13 @@ State
     my $heap     = $args->{heap};
     my $row      = $Curses::LINES - 2;
  
-    move( $row++, 0 ); clrtoeol(); addstr(qq{Editor has quit.});
-    move( $row++, 0 ); clrtoeol();
-    noutrefresh();
+    move( $row++, 0 ); clrtoeol; addstr(qq{Editor has quit.});
+    move( $row++, 0 ); clrtoeol;
+    noutrefresh;
     doupdate;
  
     $kernel->alias_remove(q{console});
-    $kernel->alarm_remove_all();
+    $kernel->alarm_remove_all;
     delete $heap->{curses};
     }
   });
@@ -1062,5 +1079,5 @@ POE::Session->create
   args          => [ $ARGV[0] ],
   inline_states => { %inline_state },
   );
-POE::Kernel->run();
+POE::Kernel->run;
 exit 0;

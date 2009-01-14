@@ -268,19 +268,19 @@ sub update
 
 # }}}
 
-# {{{ _update_cursor
+# {{{ update_cursor
 
-=head2 _update_cursor
+=head2 update_cursor
 
 Update the cursor position
 
 =cut
 
-sub _update_cursor
+sub update_cursor
   {
   my ( $self ) = @_;
 
-  addstr( $self->{cursor_v}, $self->{cursor_h}, q{} );
+  addstr( $Curses::LINES - 1, $self->{cursor_h}, q{} );
   }
 
 # }}}

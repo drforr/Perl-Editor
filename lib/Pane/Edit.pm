@@ -294,18 +294,6 @@ sub update
   my ( $self )   = @_;
   my $file_lines = $self->{content};
 
-# {{{ Calculate the actual cursor h-position based on the extant text.
-  my $cursor_h = min
-    (
-    $self->{cursor_h},
-    length( $self->{content}->[ $self->global_cursor_v ] ) - 1
-    );
-  $cursor_h = length( $self->{content}->[ $self->global_cursor_v ] ) - 1
-    if $self->{cursor_eol};
-  $cursor_h = max( $cursor_h, 0 );
-
-# }}}
-
 # {{{ Display visible rows
   for my $cur_row ( 0 .. $self->_min_height - 1 )
     {
@@ -325,6 +313,33 @@ sub update
 
     addstr( $remainder );
     }
+
+# }}}
+  }
+
+# }}}
+
+# {{{ update_cursor
+
+=head2 update_cursor
+
+Update the cursor position
+
+=cut
+
+sub update_cursor
+  {
+  my ( $self ) = @_;
+
+# {{{ Calculate the actual cursor h-position based on the extant text.
+  my $cursor_h = min
+    (
+    $self->{cursor_h},
+    length( $self->{content}->[ $self->global_cursor_v ] ) - 1
+    );
+  $cursor_h = length( $self->{content}->[ $self->global_cursor_v ] ) - 1
+    if $self->{cursor_eol};
+  $cursor_h = max( $cursor_h, 0 );
 
 # }}}
 
