@@ -670,7 +670,7 @@ insert_into_trie
   sub    => sub
     {
     my ( $args ) = @_;
-    $args->{heap}->{command_line}->delete_command_character;
+    $args->{heap}->{command_line}->delete_character;
     }
   });
 
@@ -751,7 +751,7 @@ insert_into_trie
     {
     my ( $args, $keystroke ) = @_;
 
-    $args->{heap}->{command_line}->insert_command_character
+    $args->{heap}->{command_line}->insert_character
       ({
       keystroke => $keystroke
       });

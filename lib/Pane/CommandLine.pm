@@ -157,15 +157,15 @@ sub cur_line
 
 # }}}
 
-# {{{ insert_command_character({ keystroke => $ch })
+# {{{ insert_character({ keystroke => $ch })
 
-=head2 insert_command_character({ keystroke => $ch })
+=head2 insert_character({ keystroke => $ch })
 
 Insert the specified keystroke at the current cursor position
 
 =cut
 
-sub insert_command_character
+sub insert_character
   {
   my ( $self, $args ) = @_;
 
@@ -191,15 +191,15 @@ sub insert_line
 
 # }}}
 
-# {{{ delete_command_character
+# {{{ delete_character
 
-=head2 delete_command_character
+=head2 delete_character
 
 Delete the character at the cursor position
 
 =cut
 
-sub delete_command_character
+sub delete_character
   {
   my ( $self ) = @_;
 
