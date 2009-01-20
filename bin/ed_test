@@ -45,9 +45,10 @@ sub insert_into_trie
 
   for my $string ( @$list )
     {
+    my $key;
     if ( $string =~ m{^KEY} )
       {
-      $tref->{$string} = $args->{sub};
+      $key = $string;
       }
     else 
       {
@@ -59,8 +60,14 @@ sub insert_into_trie
           unless defined $tref->{$char};
         $tref = $tref->{$char};
         }
-      $tref->{$char[0]} = $args->{sub};
+      $key = $char[0];
       }
+    if ( $tref->{$key} )
+      {
+      endwin;
+      die "Cannot insert two actions for '$string' in mode '$mode'.\n";
+      }
+    $tref->{$key} = $args->{sub};
     }
   }
 
@@ -934,6 +941,7 @@ State
       {
       $pane->update_cursor;
       }
+
     noutrefresh;
     doupdate;
     }
@@ -995,6 +1003,7 @@ State
       {
       my @char = split //, $heap->{editor_trie_buffer};
 
+# {{{ Slide down the trie
       while ( @char > 1 )
         {
         my $char = shift @char;
@@ -1009,6 +1018,8 @@ State
           return;
           }
         }
+
+# }}}
 
       if ( $tref->{$char[0]}{$keystroke} )
         {
@@ -1036,6 +1047,8 @@ State
       }
 
 # }}}
+
+# {{{ Single-character command
     else
       {
       if ( exists $tref->{$keystroke} )
@@ -1064,8 +1077,12 @@ State
         {
         beep;
         delete $heap->{editor_trie_buffer};
+        return;
         }
       }
+
+# }}}
+
     $kernel->yield(q{update}) unless $args->{heap}->{quitting};
     }
   });
