@@ -159,13 +159,14 @@ insert_into_trie
     my ( $args, $keystroke ) = @_;
     my $heap                 = $args->{heap};
 
+    $keystroke += 0;
     if ( $heap->{repeat_count} and $heap->{repeat_count} > 0 )
       {
-      $heap->{repeat_count} = ( $heap->{repeat_count} * 10 ) + $keystroke + 0;
+      $heap->{repeat_count} = ( $heap->{repeat_count} * 10 ) + $keystroke;
       }
     else
       {
-      $heap->{repeat_count} = $keystroke + 0;
+      $heap->{repeat_count} = $keystroke;
       }
     }
   });
@@ -475,6 +476,7 @@ insert_into_trie
     set_mode({ heap => $args->{heap}, mode => q{insert} });
     $pane->insert_line;
     $pane->cursor_down;
+    $pane->cursor_flush_left;
     }
   });
 
@@ -496,8 +498,6 @@ insert_into_trie
 
 # }}}
 
-# v  w
-
 # {{{ Normal-mode 'v'
 insert_into_trie
   ({
@@ -515,6 +515,8 @@ insert_into_trie
   });
 
 # }}}
+
+# w
 
 # {{{ Normal-mode 'x'
 insert_into_trie
@@ -1021,17 +1023,19 @@ State
 
 # }}}
 
+# {{{ Try to match starting with the first character...
       if ( $tref->{$char[0]}{$keystroke} )
         {
         if ( ref($tref->{$char[0]}{$keystroke}) eq 'CODE' )
           {
-          my $cmd = $heap->{editor_trie_buffer} . $keystroke;
+          my $cmd  = $heap->{editor_trie_buffer} . $keystroke;
+          my $func = $tref->{$char[0]}{$keystroke};
           for ( 1 .. $repeat_count )
             {
-            $tref->{$char[0]}{$keystroke}->($args,$cmd);
+            $func->($args,$cmd);
             }
-          $heap->{repeat_count} = undef;
-          $heap->{editor_trie_buffer} = undef;
+          delete $heap->{repeat_count};
+          delete $heap->{editor_trie_buffer};
           }
         else
           {
@@ -1044,6 +1048,9 @@ State
         delete $heap->{editor_trie_buffer};
         return;
         }
+
+# }}}
+
       }
 
 # }}}
@@ -1059,15 +1066,16 @@ State
           }
         else
           {
+          my $func = $tref->{$keystroke};
           if ( $keystroke =~ m{[1-9]} )
             {
-            $tref->{$keystroke}->($args,$keystroke);
+            $func->($args,$keystroke);
             }
           else
             {
             for ( 1 .. $repeat_count )
               {
-              $tref->{$keystroke}->($args,$keystroke);
+              $func->($args,$keystroke);
               }
             $heap->{repeat_count} = undef;
             }
