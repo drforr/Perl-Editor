@@ -24,19 +24,16 @@ use Pane::CommandLine;
 # Insert
 # Command-line
 #
-my %editor_trie =
-  (
-  normal  => {},
-  insert  => {},
-  command => {},
-  visual  => {},
-  );
 my %inline_state;
+my %editor_trie;
+$editor_trie{$_} = {} for qw( normal insert command visual );
 
 # {{{ insert_into_trie({ string => 'dl', mode => 'normal', sub => $fref })
 sub insert_into_trie
   {
   my ( $args ) = @_;
+  die "Mode '$args->{mode}' is not valid.\n"
+    unless $editor_trie{$args->{mode}};
   my $list     = $args->{string};
   my $mode     = $args->{mode};
   my $tref     = $editor_trie{$mode};
@@ -46,7 +43,7 @@ sub insert_into_trie
   for my $string ( @$list )
     {
     my $key;
-    if ( $string =~ m{^KEY} )
+    if ( $string =~ m{ ^ KEY }mx )
       {
       $key = $string;
       }
@@ -995,7 +992,7 @@ State
     my $mode      = $heap->{command_line}{mode};
 
     $keystroke = uc( keyname($keystroke) ) if
-      $keystroke =~ m{ ^ \d{2,} $ }x;
+      $keystroke =~ m{ ^ \d{2,} $ }mx;
 
     my $repeat_count = $heap->{repeat_count} || 1;
     my $tref         = $editor_trie{$mode};
@@ -1067,7 +1064,7 @@ State
         else
           {
           my $func = $tref->{$keystroke};
-          if ( $keystroke =~ m{[1-9]} )
+          if ( $keystroke =~ m{ [1-9] }mx )
             {
             $func->($args,$keystroke);
             }
