@@ -51,15 +51,20 @@ Also you can pass in content at this point.
 sub new
   {
   my ( $proto, $args ) = @_;
-  my $class = ref $proto ? ref($proto) : $proto;
+  my $class            = ref $proto ? ref($proto) : $proto;
+  my %args             = %$args;
 
 # {{{ Superclass
   my $self = $class->SUPER::new
     ({
-    pane_width      => $args->{pane_width},
-    pane_height     => $args->{pane_height},
-    viewport_width  => $args->{viewport_width},
-    viewport_height => $args->{viewport_height},
+    pane_width      => $args{pane_width},
+    pane_height     => $args{pane_height},
+
+    viewport_width  => $args{viewport_width},
+    viewport_height => $args{viewport_height},
+
+    viewport_top    => $args{viewport_top},
+    viewport_left   => $args{viewport_left},
     });
 
 # }}}
@@ -308,7 +313,7 @@ sub update
         length($remainder) < $self->viewport_width;
       }
 
-    move( $cur_row, 0 );
+    move( $cur_row + $self->viewport_top, 0 );
     clrtoeol();
 
     addstr( $remainder );
@@ -343,7 +348,7 @@ sub update_cursor
 
 # }}}
 
-  addstr( $self->{cursor_v}, $cursor_h, q{} );
+  addstr( $self->{cursor_v} + $self->viewport_top, $cursor_h, q{} );
   }
 
 # }}}

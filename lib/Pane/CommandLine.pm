@@ -60,6 +60,8 @@ sub new
     pane_height     => $args{pane_height},
     viewport_width  => $args{viewport_width},
     viewport_height => $args{viewport_height},
+    viewport_top    => $args{viewport_top} || 0,
+    viewport_left   => $args{viewport_left} || 0,
     });
 
 # }}}

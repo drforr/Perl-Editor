@@ -886,14 +886,19 @@ State
     my $file       = get_lines({ filename => $filename });
     my $pane_width = max( map { length($_) } @$file );
 
+    my $edit_pane_height = 2;
+
 # {{{ Create scrolling pane
     $heap->{pane} = Pane::Edit->new
       ({
       pane_height     => scalar(@$file),
-      viewport_height => $Curses::LINES - 1,
       pane_width      => $pane_width,
       viewport_width  => $Curses::COLS,
       content         => $file,
+
+      viewport_height => $Curses::LINES - (1 + $edit_pane_height),
+      viewport_top    => $edit_pane_height,
+      viewport_left   => 0,
       });
 
 # }}}

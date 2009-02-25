@@ -24,6 +24,11 @@ sub new
   croak q{viewport height too small} if
     $args->{viewport_height} and $args->{viewport_height} <= 0;
 
+  croak q{viewport top above screen top} if
+    $args->{viewport_top} and $args->{viewport_top} <= 0;
+  croak q{viewport left beyond screen left} if
+    $args->{viewport_left} and $args->{viewport_left} <= 0;
+
   croak q{pane width too small} if
     $args->{pane_width} and $args->{pane_width} <= 0;
   croak q{pane height too small} if
@@ -34,6 +39,9 @@ sub new
     {
     top => 0,
     left => 0,
+
+    viewport_top  => $args->{viewport_top}  || 0,
+    viewport_left => $args->{viewport_left} || 0,
 
     viewport_width  => $args->{viewport_width}  || 80,
     viewport_height => $args->{viewport_height} || 24,
@@ -78,6 +86,76 @@ sub viewport_height
   {
   my ( $self ) = @_;
   return $self->{viewport_height}
+  } 
+
+# }}}
+
+# {{{ viewport_top
+
+=head2 viewport_top
+
+Return the top of the viewport.
+
+=cut
+
+sub viewport_top
+  {
+  my ( $self ) = @_;
+  return $self->{viewport_top}
+  } 
+
+# }}}
+
+# {{{ viewport_left
+
+=head2 viewport_left
+
+=cut
+
+sub viewport_left
+  {
+  my ( $self ) = @_;
+  return $self->{viewport_left}
+  } 
+
+# }}}
+
+# {{{ set_viewport_top({ top => 5 })
+
+=head2 set_viewport_top
+
+=cut
+
+sub set_viewport_top
+  {
+  my ( $self, $args ) = @_;
+
+  croak q{viewport top not specified!} if
+    !defined $args->{top};
+  croak q{viewport top too small!} if
+    $args->{top} <= 0;
+
+  $self->{viewport_top} = $args->{top};
+  } 
+
+# }}}
+
+# {{{ set_viewport_left({ left => 4 })
+
+=head2 set_viewport_left
+
+=cut
+
+sub set_viewport_left
+  {
+  my ( $self, $args ) = @_;
+
+  croak q{viewport left not specified!} if
+    !defined $args->{left};
+  croak q{viewport left too small!} if
+    $args->{left} <= 0;
+
+  $self->{viewport_left} = $args->{left};
   } 
 
 # }}}
