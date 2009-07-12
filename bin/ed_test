@@ -3,7 +3,6 @@
 use warnings;
 use strict;
 use Carp qw(croak);
-use Readonly;
 use List::Util qw(max);
 
 use FindBin qw($Bin);
@@ -12,8 +11,11 @@ use Curses;
 use POE;
 use POE::Wheel::Curses;
 
+use Packer;
+
 use Pane;
 use Pane::Edit;
+use Pane::StatusLine;
 use Pane::CommandLine;
 
 #
@@ -24,9 +26,10 @@ use Pane::CommandLine;
 # Insert
 # Command-line
 #
+my @legal_modes = qw( normal insert command visual );
 my %inline_state;
 my %editor_trie;
-$editor_trie{$_} = {} for qw( normal insert command visual );
+$editor_trie{$_} = {} for @legal_modes;
 
 # {{{ insert_into_trie({ string => 'dl', mode => 'normal', sub => $fref })
 sub insert_into_trie
@@ -820,6 +823,8 @@ sub set_mode
   my ( $args ) = @_;
   my $heap     = $args->{heap};
   my $mode     = $args->{mode};
+  croak "Attempt to set illegal mode '$mode'\n"
+      unless grep { /$mode/ } @legal_modes;
 
   $heap->{pane}->set_mode({ mode => $mode });
   $heap->{command_line}->set_mode({ mode => $mode });
@@ -854,10 +859,12 @@ sub get_lines
   my $filename = $args->{filename};
   my $lines    = [];
 
-  croak qq{Could not find file '$filename'.} unless -e $filename;
-  croak qq{'$filename' is not a file.} unless -f $filename;
+  die qq{No filename specified.\n} unless $filename;
+
+  die qq{Could not find file '$filename'.\n} unless -e $filename;
+  die qq{'$filename' is not a file.\n} unless -f $filename;
   
-  open my $fh, $filename or die qq{Could not open '$filename'};
+  open my $fh, '<:utf8', $filename or die qq{Could not open '$filename'};
   @$lines = map { chomp; $_ } <$fh>;
   close $fh;
   return $lines;
@@ -886,19 +893,46 @@ State
     my $file       = get_lines({ filename => $filename });
     my $pane_width = max( map { length($_) } @$file );
 
-    my $edit_pane_height = 2;
+    my $packer = Packer->new({
+      top => 0,
+      height => $Curses::LINES
+    });
+
+    $packer->add({ height => 2 }); # Bogus pane, not connected at all
+    $packer->add({ height => 'stretchy' });
+    $packer->add({ height => 1 });
+    $packer->add({ height => 1 });
+
+    my @panes = $packer->finalize();
 
 # {{{ Create scrolling pane
     $heap->{pane} = Pane::Edit->new
       ({
       pane_height     => scalar(@$file),
       pane_width      => $pane_width,
-      viewport_width  => $Curses::COLS,
+      #viewport_width  => $Curses::COLS,
+      #viewport_width  => $Curses::COLS - 1,
+      viewport_width  => $Curses::COLS - 2,
       content         => $file,
 
-      viewport_height => $Curses::LINES - (1 + $edit_pane_height),
-      viewport_top    => $edit_pane_height,
-      viewport_left   => 0,
+      %{$panes[1]}, # Viewport height/top
+
+#      viewport_left   => 0,
+      viewport_left   => 1,
+      });
+
+# }}}
+
+# {{{ Create Status pane
+    $heap->{status_line} = Pane::StatusLine->new
+      ({
+      pane_height     => 1,
+      pane_width      => $Curses::COLS,
+      viewport_width  => $Curses::COLS,
+
+      %{$panes[2]}, # Viewport height/top
+
+      file_name       => $filename,
       });
 
 # }}}
@@ -907,9 +941,10 @@ State
     $heap->{command_line} = Pane::CommandLine->new
       ({
       pane_height     => 1,
-      viewport_height => 1,
       pane_width      => $Curses::COLS,
       viewport_width  => $Curses::COLS,
+
+      %{$panes[3]}, # Viewport height/top
       });
 
 # }}}
@@ -932,11 +967,14 @@ State
     my ( $args )     = @_;
     my $heap         = $args->{heap};
     my $pane         = $heap->{pane};
+    my $status_line  = $heap->{status_line};
     my $command_line = $heap->{command_line};
  
     $pane->update;
     $command_line->update;
+    $status_line->update;
 
+# {{{ Update cursor properly-focused
     if ( $heap->{command_line}{mode} eq 'command' )
       {
       $command_line->update_cursor;
@@ -945,6 +983,8 @@ State
       {
       $pane->update_cursor;
       }
+
+# }}}
 
     noutrefresh;
     doupdate;
@@ -1002,9 +1042,9 @@ State
     my $repeat_count = $heap->{repeat_count} || 1;
     my $tref         = $editor_trie{$mode};
 
-# {{{ Handle multi-character commands... Yipes.
     if ( $heap->{editor_trie_buffer} )
       {
+# {{{ Handle multi-character commands... Yipes.
       my @char = split //, $heap->{editor_trie_buffer};
 
 # {{{ Slide down the trie
@@ -1053,13 +1093,11 @@ State
 
 # }}}
 
-      }
-
 # }}}
-
-# {{{ Single-character command
+      }
     else
       {
+# {{{ Single-character command
       if ( exists $tref->{$keystroke} )
         {
         if ( ref($tref->{$keystroke}) eq 'HASH' )
@@ -1089,9 +1127,8 @@ State
         delete $heap->{editor_trie_buffer};
         return;
         }
-      }
-
 # }}}
+      }
 
     $kernel->yield(q{update}) unless $args->{heap}->{quitting};
     }

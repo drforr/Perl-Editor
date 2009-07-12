@@ -305,6 +305,7 @@ sub update
     my $cur_offset = $cur_row + $self->viewport_v;
     my $cur_line   = $file_lines->[$cur_offset];
     my $remainder  = q{};
+
     if ( length($cur_line) > $self->viewport_h )
       {
       $remainder =
@@ -313,7 +314,7 @@ sub update
         length($remainder) < $self->viewport_width;
       }
 
-    move( $cur_row + $self->viewport_top, 0 );
+    move( $cur_row + $self->viewport_top_edge, $self->viewport_left_edge );
     clrtoeol();
 
     addstr( $remainder );
@@ -337,18 +338,15 @@ sub update_cursor
   my ( $self ) = @_;
 
 # {{{ Calculate the actual cursor h-position based on the extant text.
-  my $cursor_h = min
-    (
-    $self->{cursor_h},
-    length( $self->{content}->[ $self->global_cursor_v ] ) - 1
-    );
-  $cursor_h = length( $self->{content}->[ $self->global_cursor_v ] ) - 1
+  my $len = length( $self->{content}->[ $self->global_cursor_v ] ) - 1;
+  my $cursor_h = min ( $self->{cursor_h}, $len );
+  $cursor_h = $len
     if $self->{cursor_eol};
-  $cursor_h = max( $cursor_h, 0 );
+  $cursor_h = max( $cursor_h, 0 ) + $self->viewport_left_edge;
 
 # }}}
 
-  addstr( $self->{cursor_v} + $self->viewport_top, $cursor_h, q{} );
+  addstr( $self->{cursor_v} + $self->viewport_top_edge, $cursor_h, q{} );
   }
 
 # }}}

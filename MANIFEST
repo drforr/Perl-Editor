@@ -3,10 +3,13 @@ Changes
 MANIFEST
 Makefile.PL
 README
+lib/Packer.pm
 lib/Pane.pm
 lib/Pane/CommandLine.pm
+lib/Pane/StatusLine.pm
 lib/Pane/Edit.pm
 t/00-load.t
 t/01-Pane.t
+t/02-Packer.t
 t/pod-coverage.t
 t/pod.t

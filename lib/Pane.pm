@@ -90,15 +90,15 @@ sub viewport_height
 
 # }}}
 
-# {{{ viewport_top
+# {{{ viewport_top_edge
 
-=head2 viewport_top
+=head2 viewport_top_edge
 
 Return the top of the viewport.
 
 =cut
 
-sub viewport_top
+sub viewport_top_edge
   {
   my ( $self ) = @_;
   return $self->{viewport_top}
@@ -106,13 +106,13 @@ sub viewport_top
 
 # }}}
 
-# {{{ viewport_left
+# {{{ viewport_left_edge
 
-=head2 viewport_left
+=head2 viewport_left_edge
 
 =cut
 
-sub viewport_left
+sub viewport_left_edge
   {
   my ( $self ) = @_;
   return $self->{viewport_left}
@@ -730,7 +730,14 @@ sub cursor_viewport_vertical_center
   {
   my ( $self ) = @_;
 
-  $self->{cursor_v} = ( $self->_min_height / 2 ) - 1;
+  if ( $self->_min_height % 2 )
+    {
+    $self->{cursor_v} = $self->_min_height / 2;
+    }
+  else
+    {
+    $self->{cursor_v} = ( $self->_min_height / 2 ) - 1;
+    }
   }
 
 # }}}
