@@ -48,7 +48,7 @@ TODO: {
     "placeholder date/time"       => qr(Date/time)
   );
 
-  module_boilerplate_ok('lib/SExpr/Edit.pm');
+  module_boilerplate_ok('lib/Perl/Editor.pm');
 
 
 }

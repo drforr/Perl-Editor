@@ -3,7 +3,7 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME                => 'SExpr-Edit',
+    NAME                => 'Perl-Editor',
     AUTHOR              => 'Jeffrey Goff <drforr@pobox.com>',
     VERSION_FROM        => 'lib/Pane.pm',
     ABSTRACT_FROM       => 'lib/Pane.pm',
@@ -12,5 +12,5 @@ WriteMakefile(
         'Test::More' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'SExpr-Edit-*' },
+    clean               => { FILES => 'Perl-Editor-*' },
 );
